@@ -18,5 +18,9 @@ This project uses data modified from a [TidyTuesday](https://github.com/rfordata
 - Open the main.ipynb file.
 - Run sequentially.
 
+## Visualizations:
+![Line plots demonstrating trends in GDP and R&D Budgets over time](Figures/tidydata-fig1.png)
+![Line plot demonstrating change in R&D Budgets as a percent of GDP](Figures/tidydata-fig2.png)
+
 ## References: 
 The tidy data principles utilized in my work are outlined by Hadley Wickham in a report on ['Tidy Data'](https://vita.had.co.nz/papers/tidy-data.pdf). Approaches and solutions were guided by methods provided in the attached [Pandas Cheat Sheet](https://pandas.pydata.org/Pandas_Cheat_Sheet.pdf).
