@@ -10,8 +10,8 @@ The projects in this portfolio should demonstrate skills across several stages o
 - **Statistical models**, ranging from linear regression to more advanced machine learning techniques.
 - **Data visualizations**, such as key figures, posters, or interactive dashboards.
 
-Some current projects you can find are:
+Some current projects you can find in my portfolio are:
 - [Basic Streamlit App](https://github.com/llatimer031/Latimer-Data-Science-Portfolio/tree/main/basic-streamlit-app), demonstrating my ability to interact with data via a Streamlit platform, adding to my data visualization toolkit. 
-- [Tidy Data Project](https://github.com/llatimer031/Latimer-Data-Science-Portfolio/tree/main/TidyData-Project), which requires the principles of tidy data to be applied to a 'messy' dataset, promoting effective data cleaning techniques to be used on further datasets.
+- [Tidy Data Project](https://github.com/llatimer031/Latimer-Data-Science-Portfolio/tree/main/TidyData-Project), which requires the principles of tidy data to be applied to a 'messy' dataset, promoting effective data cleaning techniques to be used on future datasets.
 
 Please feel free to visit my [profile](https://github.com/llatimer031) for more information about me!
