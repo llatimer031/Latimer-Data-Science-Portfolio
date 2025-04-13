@@ -86,8 +86,14 @@ if df is not None:
     original_dim = df.shape
     st.write(f"The dataset contains {original_dim[0]} observations and {original_dim[1]} columns.")
     
+    # include only variables of choice
+    st.subheader("Step 1: Filter Columns")
+    st.write("Some columns may not contain relevant information, especially if values are missing for most observations. Remove these variables before continuing to preserve the number of observations.")
+    cols = st.multiselect("Select columns to keep:", df.columns)
+    df = df[cols]
+    
     # remove missing values
-    st.subheader("Step 1: Handle Missing Values")
+    st.subheader("Step 2: Handle Missing Values")
     st.write("Include note about options to handle missing values and choice to drop rows.") #INCOMPLETE
     df = df.dropna()
     new_dim = df.shape
@@ -95,7 +101,7 @@ if df is not None:
     st.success(f"{incomplete_rows} incomplete observations were successfully dropped.")
     
     # encode variables (if needed)
-    st.subheader("Step 2: Encode Categorical Variables")
+    st.subheader("Step 3: Encode Categorical Variables")
     st.write("For the classification models explored in this app, features must be numeric or encoded categorical variables.") # INCOMPLETE
     
     cat_cols = df.select_dtypes(include=['object', 'category']).columns.tolist()
