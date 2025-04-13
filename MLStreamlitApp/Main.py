@@ -6,6 +6,7 @@ from sklearn.neighbors import KNeighborsClassifier
 from sklearn.metrics import accuracy_score, confusion_matrix, classification_report
 from sklearn.linear_model import LogisticRegression
 from sklearn.tree import DecisionTreeClassifier
+import matplotlib.pyplot as plt
 
 
 # ---------- TITLE ---------- #
@@ -35,14 +36,17 @@ def kNNClassifier(k, X_train, y_train):
 def ConfMatrix(model, X_test, y_test):
     y_pred = model.predict(X_test)
     accuracy = accuracy_score(y_test, y_pred)
-    print(f"Accuracy: {accuracy}")
+    st.write(f"Accuracy: {accuracy:.2f}")
     
     cm = confusion_matrix(y_test, y_pred)
-    sns.heatmap(cm, annot=True, fmt='d', cmap='Blues')
-    plt.title('Confusion Matrix')
-    plt.xlabel('Predicted')
-    plt.ylabel('Actual')
-    plt.show()
+
+    fig, ax = plt.subplots()
+    sns.heatmap(cm, annot=True, fmt='d', cmap='Blues', ax=ax)
+    ax.set_title('Confusion Matrix')
+    ax.set_xlabel('Predicted')
+    ax.set_ylabel('Actual')
+
+    st.pyplot(fig)
     
 
 # ---------- SIDEBAR ---------- #
@@ -79,19 +83,20 @@ if df is not None:
     # preview the chosen dataset 
     st.write("Below is a preview of your chosen dataset:")
     st.dataframe(df.head())
-    # state dimensions
+    original_dim = df.shape
+    st.write(f"The dataset contains {original_dim[0]} observations and {original_dim[1]} columns.")
     
     # remove missing values
     st.subheader("Step 1: Handle Missing Values")
     st.write("Include note about options to handle missing values and choice to drop rows.") #INCOMPLETE
     df = df.dropna()
-    st.success("Incomplete observations were successfully dropped.")
-    # add note about how many rows were dropped 
+    new_dim = df.shape
+    incomplete_rows = original_dim[0] - new_dim[0]
+    st.success(f"{incomplete_rows} incomplete observations were successfully dropped.")
     
     # encode variables (if needed)
     st.subheader("Step 2: Encode Categorical Variables")
-    st.write("Explain purpose of edncoding and when to do it") # INCOMPLETE
-    st.write("Note: If no columns need to be encoded, you can skip this step.")
+    st.write("For the classification models explored in this app, features must be numeric or encoded categorical variables.") # INCOMPLETE
     
     cat_cols = df.select_dtypes(include=['object', 'category']).columns.tolist()
     encode_cols = st.multiselect("Select categorical columns to encode:", cat_cols)
@@ -101,6 +106,9 @@ if df is not None:
     else:
         st.warning("No columns selected for encoding.")
         
+    st.write("Note: If columns do not need to be encoded, you can skip this step.")
+
+    st.dataframe(df.head())
     data_ready = True
 
 
@@ -123,7 +131,7 @@ if data_ready:
 
     st.write("For this app, please select features that are numeric or have already been encoded.")
     # limit feature selection to numeric or encoded columns
-    numeric_columns = df.select_dtypes(include=['int64', 'float64', 'int32', 'float32']).columns.tolist()
+    numeric_columns = df.select_dtypes(include=['int64', 'float64', 'int32', 'float32', 'bool']).columns.tolist()
     # do not allow label to be chosen as feature
     if label in numeric_columns:
         numeric_columns.remove(label)
@@ -151,11 +159,16 @@ st.header("Part 3: Run the Classification Model")
 if data_split:
     # run the models
     if choice == 'Logistic Regression':
-        LogRegression(X_train, y_train)
+        log_reg = LogRegression(X_train, y_train)
+        ConfMatrix(log_reg, X_test, y_test)
+        
     elif choice == 'Classification Tree':
-        ClassTree(X_train, y_train)
+        class_tree = ClassTree(X_train, y_train)
+        ConfMatrix(class_tree, X_test, y_test)
+        
     else:
         k = st.slider("Select a k-value:", 1, 10)
-        kNNClassifier(k, X_train, y_train)
+        knn = kNNClassifier(k, X_train, y_train)
+        ConfMatrix(knn, X_test, y_test)
 else:
     st.warning("Data is not ready for this step.")
