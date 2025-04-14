@@ -146,7 +146,7 @@ if df is not None:
     data_processed = True # mark data as ready to continue
     
 else:
-    # displays if data has not been selected
+    # warning displays if data has not been selected
     st.warning("Data is not ready for this step.")
 
 st.divider()
@@ -196,7 +196,7 @@ if data_processed:
         data_ready = True # mark data as ready to continue
 
 else:
-    # displays if data has not been processed
+    # warning displays if data has not been processed
     st.warning("Data is not ready for this step.")
 
 st.divider()
@@ -220,10 +220,12 @@ if data_ready:
     if scale_choice == 'Yes':
         scaler = StandardScaler()
         # fit the scaler on the training data and transform both training and test data
-        X_train_scaled = scaler.fit_transform(X_train)
-        X_test_scaled = scaler.transform(X_test)
+        X_train_1 = scaler.fit_transform(X_train)
+        X_test_1 = scaler.transform(X_test)
         st.success("The data has been scaled.")
     else: 
+        X_train_1 = X_train
+        X_test_1 = X_test
         st.warning("Continue without scaling.")
         
     # step 3: train and test model
@@ -236,29 +238,19 @@ if data_ready:
         **Model Information:** \n
         """)
         
-        if scale_choice == 'Yes':
-            log_reg = LogRegression(X_train_scaled, y_train)
-            st.markdown(""" ##### Test Results """)
-            ConfMatrix(log_reg, X_test_scaled, y_test)
-        else:  
-            log_reg = LogRegression(X_train, y_train) 
-            st.markdown(""" ##### Test Results """)
-            ConfMatrix(log_reg, X_test, y_test)
+        log_reg = LogRegression(X_train_1, y_train) 
+        st.markdown(""" ##### Test Results """)
+        ConfMatrix(log_reg, X_test_1, y_test)
         
     else:
         st.markdown(f"""
-        **Current Model Selection:** 1NN \n
+        **Current Model Selection:** 5NN \n
         **Model Information:** \n
         """)
-        
-        if scale_choice == 'Yes':
-            knn = kNNClassifier(1, X_train, y_train)
-            st.markdown(""" ##### Test Results """)
-            ConfMatrix(knn, X_test_scaled, y_test)
-        else:  
-            knn = kNNClassifier(1, X_train, y_train)
-            st.markdown(""" ##### Test Results """)
-            ConfMatrix(knn, X_test, y_test)
+ 
+        knn = kNNClassifier(5, X_train_1, y_train)
+        st.markdown(""" ##### Test Results """)
+        ConfMatrix(knn, X_test_1, y_test)
         
     st.markdown("""
                 > 💡 **Thought Question:** 
@@ -272,7 +264,34 @@ if data_ready:
         param = st.selectbox("Choose a parameter:", ("C", "Penalty", "Max iterations"))
     else:
         param = st.selectbox("Choose a parameter:", ("k neighbors", "Metric", "Weights"))
+        if param == "k neighbors":
+            st.write("Don't know what 'k' to use?")
+            if st.button("Find best 'k'"): # create button to plot best k
+                k_values = range(1, 10, 1)
+                accuracies = []
+
+                # Loop through different values of k, train a KNN model on scaled data, and record the accuracy for each
+                for k in k_values:
+                    knn_temp = KNeighborsClassifier(n_neighbors=k)
+                    knn_temp.fit(X_train_1, y_train)
+                    y_temp_pred = knn_temp.predict(X_test_1)
+                    accuracies.append(accuracy_score(y_test, y_temp_pred))
+
+                # Plot accuracy vs. number of neighbors (k) for the scaled data
+                fig = plt.figure(figsize=(8, 5))
+                plt.plot(k_values, accuracies, marker='o')
+                plt.title('Accuracy vs. Number of Neighbors (k)')
+                plt.xlabel('Number of Neighbors (k)')
+                plt.ylabel('Accuracy')
+                plt.xticks(k_values)
+                st.pyplot(fig)
+                
+            k = st.slider("Select 'k' value:", 1, 10)
+            knn = kNNClassifier(k, X_train_1, y_train)
+                
+        st.markdown(""" ##### Test Results """)
+        ConfMatrix(knn, X_test_1, y_test)
         
 else:
-    # displays if data has not been split
+    # warning displays if data has not been split
     st.warning("Data is not ready for this step.")
