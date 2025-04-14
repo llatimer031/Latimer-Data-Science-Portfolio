@@ -36,18 +36,12 @@ To launch via Streamlit cloud:
 
 
 ## References:
-[Streamlit API Cheat Sheet](https://docs.streamlit.io/develop/quick-reference/cheat-sheet)
+**Streamlit:** [Streamlit API Cheat Sheet](https://docs.streamlit.io/develop/quick-reference/cheat-sheet), [Streamlit Cloud](https://docs.streamlit.io/deploy/streamlit-community-cloud/deploy-your-app)
 
-Overview:
-- [Logistic Regression vs. kNN](https://www.geeksforgeeks.org/logistic-regression-vs-k-nearest-neighbors-in-machine-learning/)
-- [Hyperparameter Tuning](https://www.geeksforgeeks.org/hyperparameter-tuning/)
+**Overview:** [Logistic Regression vs. kNN](https://www.geeksforgeeks.org/logistic-regression-vs-k-nearest-neighbors-in-machine-learning/), [Hyperparameter Tuning](https://www.geeksforgeeks.org/hyperparameter-tuning/)
 
-Logistic Regression:
-- [SciKit-Learn Documentation](https://scikit-learn.org/stable/modules/generated/sklearn.linear_model.LogisticRegression.html)
-- [Understanding 'C' Parameter](https://stackoverflow.com/questions/67513075/what-is-c-parameter-in-sklearn-logistic-regression)
+**Logistic Regression:** [SciKit-Learn Documentation](https://scikit-learn.org/stable/modules/generated/sklearn.linear_model.LogisticRegression.html), [Understanding 'C' Parameter](https://stackoverflow.com/questions/67513075/what-is-c-parameter-in-sklearn-logistic-regression)
 
-kNN:
-- [SkiKit-Learn Documentation](https://scikit-learn.org/stable/modules/generated/sklearn.neighbors.KNeighborsClassifier.html)
-- [Understanding Distance Metric](https://www.geeksforgeeks.org/how-to-choose-the-right-distance-metric-in-knn/)
+**kNN:** [SkiKit-Learn Documentation](https://scikit-learn.org/stable/modules/generated/sklearn.neighbors.KNeighborsClassifier.html), [Understanding Distance Metric](https://www.geeksforgeeks.org/how-to-choose-the-right-distance-metric-in-knn/)
 
 ## Visual Examples:
