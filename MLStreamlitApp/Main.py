@@ -32,11 +32,6 @@ def LogRegression(X_train, y_train):
     model.fit(X_train, y_train)
     return model
 
-def ClassTree(X_train, y_train):
-    model = DecisionTreeClassifier()
-    model.fit(X_train, y_train)
-    return model
-
 def kNNClassifier(k, X_train, y_train):
     model = KNeighborsClassifier(n_neighbors=k)
     model.fit(X_train, y_train)
@@ -128,20 +123,24 @@ if data_source == "Upload CSV":
         st.subheader("Step 2: Handle Missing Values")
         st.markdown("""
         **Purpose:** The machine learning algorithms used in this app require a dataset without missing values.\n
-        **Action:** While there are several approaches to handle missing data, including dropping and imputing, this app will **drop any rows with missing values** for simplicity.
+        **Action:** While there are several approaches to handle missing data, 
+        including dropping or imputing values, this app will **drop any rows with missing values** for simplicity.
         """)
-        # remove rows with missing values
-        df = df.dropna() 
-        new_dim = df.shape
-        incomplete_rows = original_dim[0] - new_dim[0]
+        df = df.dropna() # remove rows with missing values
+        new_dim = df.shape # get dimensions of new df
+        incomplete_rows = original_dim[0] - new_dim[0] # calculate how many rows were removed
         st.success(f"{incomplete_rows} incomplete observations were successfully dropped.")
     
         # step 3: encode variables
         st.subheader("Step 3: Encode Categorical Variables")
         st.markdown("""
-        **Purpose:** \n
-        **Action:** \n  
-        **Note:** The desired target variable does not need to be encoded, as the Scikit-learn algorithms used in this app will automatically use a label encoder.         
+        **Purpose:** Many machine learning algorithms require numerical inputs, 
+        which inhibits models from interpreting categorical variables in their natural state.\n
+        **Action:** Convert categorical variables into numeric form using one-hot encoding. \n  
+        **Note:** Categorical features must be encoded to use in these models. \n
+        Intended target variables do not have to be encoded now, 
+        as the Scikit-learn algorithms used in this app will automatically use a label encoder,
+        but it can become difficult to interpret labels in these instances.
         """)
         # create list of categorical columns to select from
         cat_cols = df.select_dtypes(include=['object', 'category']).columns.tolist()
@@ -187,7 +186,7 @@ if data_source == "Upload CSV":
             st.dataframe(y.head()) 
 
         st.markdown("""
-        **Features:** Numeric or encoded categorical variables.
+        **Features:** Please select numeric or encoded categorical variables.
         """)
         # limit feature selection to viable data types
         numeric_columns = df.select_dtypes(include=['int64', 'float64', 'int32', 'float32', 'bool']).columns.tolist()
@@ -313,8 +312,8 @@ if data_ready:
     if model_choice == 'Logistic Regression':
         st.markdown("""
         **Current Model Selection:** Logistic Regression \n
-        **Model Information:** Supervised learning model used for binary classification 
-        by calculating the probability a datapoint belongs to a given class. \n
+        **Model Information:** Logistic repression is a type of supervised learning 
+        used for binary classification by calculating the probability a data point belongs to a given class. \n
         **Coefficients and Intercept:** \n
         - Positive: Feature increases the log-odds (probability) of the target variable.
         - Negative: Feature decreases the log-odds (probability) of the target variable.
@@ -334,8 +333,9 @@ if data_ready:
         
     else:
         st.markdown(f"""
-        **Current Model Selection:** 5NN \n
-        **Model Information:** \n
+        **Current Model Selection:** kNN (default k=5) \n
+        **Model Information:** The 'k' Nearest Neighbors algorithm is a supervised learning method used for classification
+        by predicting the class of a data point according to its similarities (or distance) to the other data points. 
         """)
         
         knn = kNNClassifier(5, X_train_1, y_train)
@@ -350,13 +350,54 @@ if data_ready:
     
     # step 4: tune with different parameters
     st.subheader("Step 4: Hyperparameter Tuning")
+    st.write("**Overview:** Fine tuning a model helps to find optimal hyperparameters to maximize accuracy and other performance indicators.")
     
     if model_choice == 'Logistic Regression':
-        param = st.selectbox("Choose a parameter:", ("C", "Penalty", "Max iterations"))
+        st.markdown("""
+        **Options:**
+        - **C:** Inverse of regularization strength (default = 1.0)
+            - Small c --> stronger regularization --> model may be underfit.
+            - Large c --> weaker regularization --> model may be overfit.
+        - **max_iter:** Maximum number of iterations taken for the solver to converge (default = 100).
+        """)
+        param = st.selectbox("Choose a parameter:", ("C", "max_iter"))
+        
+        if param == "C":
+            C = st.slider("Select a 'C' value to use:", 0.01, 10.0)
+            log_reg_tuned = LogisticRegression(C=C)
+            log_reg_tuned.fit(X_train_1, y_train)
+            
+        else:
+            max_iter = st.slider("Select a number of iterations to run:", 10, 1000)
+            log_reg_tuned = LogisticRegression(max_iter=max_iter)
+            log_reg_tuned.fit(X_train_1, y_train)
+            
+        ConfMatrix(log_reg_tuned, X_test_1, y_test)
+        
+        # thought questions / analysis
+        if param == "max_iter":
+            st.markdown("""
+                > 💡 **Thought Question:** 
+                > Is there a threshold in which increasing the number of iterations no longer changes the outcomes?
+                """)
+        
     else:
-        param = st.selectbox("Choose a parameter:", ("k neighbors", "Metric", "Weights"))
-        if param == "k neighbors":
-            st.write("Don't know what 'k' to use?")
+        st.markdown("""
+        **Options:**
+        - **n_neighbors:** Specifies 'k', or the number of neighbors to compare each test point to (default = 5)).
+        - **metric:** Specifies the metric used to calculate distance between data points. 
+            - 'minkowski' (default): standard euchlidean (straight-line) distance
+            - 'manhattan': grid-like distance between coordinates
+            - 'chebyshev': maximum absolute difference
+        """)
+        param = st.selectbox("Choose a hyperparameter:", ("n_neighbors", "metric"))
+        
+        if param == "n_neighbors":
+            
+            k = st.slider("Select 'k' value to use:", 1, 10)
+            knn_tuned = kNNClassifier(k, X_train_1, y_train)
+            
+            st.markdown("> ❓ Don't know what 'k' to use?")
             if st.button("Find best 'k'"): # create button to plot best k
                 k_values = range(1, 11, 1)
                 accuracies = []
@@ -377,11 +418,22 @@ if data_ready:
                 plt.xticks(k_values)
                 st.pyplot(fig)
                 
-            k = st.slider("Select 'k' value:", 1, 10)
-            knn_tuned = kNNClassifier(k, X_train_1, y_train)
+        else:
+            chosen_metric = st.selectbox("Select a metric:", ('minkowski', 'manhattan', 'chebyshev'))
+            knn_tuned = KNeighborsClassifier(metric=chosen_metric)
+            knn_tuned.fit(X_train_1, y_train)
+            
                 
         st.markdown(""" ##### Test Results """)
         ConfMatrix(knn_tuned, X_test_1, y_test)
+        
+        # thought questions / analysis
+        if param == "metric":
+            st.markdown("""
+                > 💡 **Thought Question:** 
+                > Compare the outcomes for different metrics using both scaled and unscaled data.
+                > Why might these metrics have a smaller affect on scaled data?
+                """)
         
 else:
     # warning displays if data has not been split
