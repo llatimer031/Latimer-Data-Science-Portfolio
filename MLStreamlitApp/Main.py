@@ -9,7 +9,8 @@ from sklearn.linear_model import LogisticRegression
 from sklearn.tree import DecisionTreeClassifier
 
 from sklearn.model_selection import train_test_split
-from sklearn.metrics import accuracy_score, confusion_matrix, classification_report
+from sklearn.metrics import accuracy_score, confusion_matrix
+from sklearn.preprocessing import StandardScaler
 
 # ---------- TITLE ---------- #
 
@@ -39,7 +40,7 @@ def kNNClassifier(k, X_train, y_train):
 def ConfMatrix(model, X_test, y_test):
     y_pred = model.predict(X_test)
     accuracy = accuracy_score(y_test, y_pred)
-    st.write(f"Accuracy: {accuracy:.2f}")
+    st.write(f"**Accuracy:** {accuracy:.2f}")
     
     cm = confusion_matrix(y_test, y_pred)
 
@@ -51,17 +52,16 @@ def ConfMatrix(model, X_test, y_test):
 
     st.pyplot(fig)
     
-
 # ---------- SIDEBAR ---------- #
 # create sidebar to customize data and model options
 st.sidebar.header("Data Options")
 
 data_source = st.sidebar.radio("Choose a data source:",
-    ("Upload CSV", "Use Sample Dataset"))
+    ("Use Sample Dataset", "Upload CSV"))
     
 # upload a CSV file
 if data_source == "Upload CSV":
-    st.sidebar.write("Note: The models explored in this app work best for (binary) classification. We suggest data that contains a binary variable.")
+    st.sidebar.write("**Note:** This app explores classification models, which require at least one (binary) categorical variable.")
     uploaded_file = st.sidebar.file_uploader("Upload your CSV file", type=["csv"])
     if uploaded_file is not None:
         df = pd.read_csv(uploaded_file)
@@ -98,7 +98,7 @@ st.divider() # horizontal separator
 # PART 1: DATA PROCESSING
 st.header("Part 1: Processing the Data")
 
-data_ready = False
+data_processed = False
 if df is not None:
     
     # preview the chosen dataset 
@@ -137,13 +137,13 @@ if df is not None:
     encode_cols = st.multiselect("Select categorical columns to encode:", cat_cols)
     if encode_cols:
         df = pd.get_dummies(df, columns=encode_cols, drop_first=True)
-        st.success("Selected columns encoded using one-hot encoding.")
+        st.success("Selected columns were encoded using one-hot encoding.")
     else:
         st.warning("No columns selected for encoding.")
 
     # preview processed dataset
     # st.dataframe(df.head())
-    data_ready = True # mark data as ready to continue
+    data_processed = True # mark data as ready to continue
     
 else:
     # displays if data has not been selected
@@ -154,11 +154,11 @@ st.divider()
 # PART 2: VARIABLE SELECTION
 st.header("Part 2: Model and Variable Selection") 
 
-data_split = False
-if data_ready:
+data_ready = False
+if data_processed:
     # step 1: choose a model type to train
     st.subheader("Step 1: Choose a Classification Model")
-    choice = st.selectbox('Select Model Type', ['Logistic Regression', 'Classification Tree', 'kNN'])
+    model_choice = st.selectbox('Select Model Type:', ['Logistic Regression', 'kNN'])
 
     # step 2: specify x and y columns
     st.subheader("Step 2: Choose Features and Target Variable")
@@ -166,7 +166,7 @@ if data_ready:
     st.markdown("""
     **Target Variable:** 
     Please select a categorical variable. 
-    Note that for logistic regression models, target variables must also be binary.
+    Note that if you chose a logistic regression model, the target variable must also be binary.
     """)
     # select y variable
     label = st.selectbox("Select the target column (y):", df.columns)
@@ -191,14 +191,9 @@ if data_ready:
     else:
         st.warning("Please select at least one feature.")
     
-    # step 3: split into training and test data
-    st.subheader("Step 3: Train-Test Split")
-    if 'X' in locals() and 'y' in locals(): # do not execute split until x and y have been chosen
-        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
-        st.success("The data has been split into 80% training data and 20% test data.")
-        data_split = True # mark data as ready to continue
-    else:
-        st.warning("Variable selection must be complete to perform split.")
+    
+    if 'X' in locals() and 'y' in locals(): # ensures X and y have been selected
+        data_ready = True # mark data as ready to continue
 
 else:
     # displays if data has not been processed
@@ -208,20 +203,76 @@ st.divider()
 
 # PART 3: TRAIN MODEL
 st.header("Part 3: Train a Classification Model")
-if data_split:
-    # run the models
-    if choice == 'Logistic Regression':
-        log_reg = LogRegression(X_train, y_train) # train model
-        # display confusion matrix
-        ConfMatrix(log_reg, X_test, y_test)
+if data_ready:
+    
+    # step 1: split into training and test data
+    st.subheader("Step 1: Train-Test Split")
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+    st.success("The data has been split into 80% training data and 20% test data.")
+    
+    # step 2: scale the data before training
+    st.subheader("Step 2 (Optional): Scaling")
+    st.markdown("""
+    **Purpose:** For models sensitive to the scale of features, scaling can substantially improve performance. \n
+    **Action:** Standardize the features (mean = 0, standard deviation = 1) and apply to train and test data. \n  
+    """)
+    scale_choice = st.radio("Would you like to perform scaling?", ("Yes", "No"))
+    if scale_choice == 'Yes':
+        scaler = StandardScaler()
+        # fit the scaler on the training data and transform both training and test data
+        X_train_scaled = scaler.fit_transform(X_train)
+        X_test_scaled = scaler.transform(X_test)
+        st.success("The data has been scaled.")
+    else: 
+        st.warning("Continue without scaling.")
         
-    elif choice == 'Classification Tree':
-        class_tree = ClassTree(X_train, y_train) # train model
-        ConfMatrix(class_tree, X_test, y_test)
+    # step 3: train and test model
+    st.subheader("Step 3: Train and Test the Selected Model")
+    
+    # run function corresponding to chosen model
+    if model_choice == 'Logistic Regression':
+        st.markdown("""
+        **Current Model Selection:** Logistic Regression \n
+        **Model Information:** \n
+        """)
+        
+        if scale_choice == 'Yes':
+            log_reg = LogRegression(X_train_scaled, y_train)
+            st.markdown(""" ##### Test Results """)
+            ConfMatrix(log_reg, X_test_scaled, y_test)
+        else:  
+            log_reg = LogRegression(X_train, y_train) 
+            st.markdown(""" ##### Test Results """)
+            ConfMatrix(log_reg, X_test, y_test)
         
     else:
-        k = st.slider("Select a k-value:", 1, 10)
-        knn = kNNClassifier(k, X_train, y_train) # train model
-        ConfMatrix(knn, X_test, y_test)
+        st.markdown(f"""
+        **Current Model Selection:** 1NN \n
+        **Model Information:** \n
+        """)
+        
+        if scale_choice == 'Yes':
+            knn = kNNClassifier(1, X_train, y_train)
+            st.markdown(""" ##### Test Results """)
+            ConfMatrix(knn, X_test_scaled, y_test)
+        else:  
+            knn = kNNClassifier(1, X_train, y_train)
+            st.markdown(""" ##### Test Results """)
+            ConfMatrix(knn, X_test, y_test)
+        
+    st.markdown("""
+                > 💡 **Thought Question:** 
+                > Does scaling the data affect the given model accuracy?
+                """)
+    
+    # step 4: tune with different parameters
+    st.subheader("Step 4: Hyperparameter Tuning")
+    
+    if model_choice == 'Logistic Regression':
+        param = st.selectbox("Choose a parameter:", ("C", "Penalty", "Max iterations"))
+    else:
+        param = st.selectbox("Choose a parameter:", ("k neighbors", "Metric", "Weights"))
+        
 else:
+    # displays if data has not been split
     st.warning("Data is not ready for this step.")
