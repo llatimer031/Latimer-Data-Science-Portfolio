@@ -16,9 +16,14 @@ from sklearn.preprocessing import StandardScaler
 
 # set up title, author, and description
 st.set_page_config(layout='centered')
-st.title("Supervised Learning via Streamlit:")
+col1, mid, col2 = st.columns([10,1,30])
+with col1:
+    st.image("data/streamlit-app.jpeg", width=150)
+with col2:
+    st.title("Supervised Learning via Streamlit:")
+    st.write("By: Lauren Latimer | GitHub: [llatimer031](https://github.com/llatimer031/Latimer-Data-Science-Portfolio/tree/main/MLStreamlitApp)")
+    
 st.header("An interactive walkthrough data processing, model selection, and parameter tuning for classification models.")
-st.write("By: Lauren Latimer | Access code on [Github](https://github.com/llatimer031/Latimer-Data-Science-Portfolio/tree/main/MLStreamlitApp)")
 
 # --------------- FUNCTIONS --------------- #
 
@@ -224,7 +229,7 @@ else: # elif sample data set used
             df = df.dropna() # remove missing values
             df = pd.get_dummies(df, columns=['sex'], drop_first=True) # encode age column
         else: # sample_data == 'titanic'
-            selected_cols = ['survived', 'pclass', 'age', 'sibsp', 'parch', 'fare', 'sex_male']
+            selected_cols = ['survived', 'pclass', 'age', 'sibsp', 'parch', 'fare', 'sex']
             df = df[selected_cols]
             df = df.dropna() # remove missing values
             df = pd.get_dummies(df, columns=['sex'], drop_first=True) # encode age column
@@ -308,10 +313,22 @@ if data_ready:
     if model_choice == 'Logistic Regression':
         st.markdown("""
         **Current Model Selection:** Logistic Regression \n
-        **Model Information:** \n
+        **Model Information:** Supervised learning model used for binary classification 
+        by calculating the probability a datapoint belongs to a given class. \n
+        **Coefficients and Intercept:** \n
+        - Positive: Feature increases the log-odds (probability) of the target variable.
+        - Negative: Feature decreases the log-odds (probability) of the target variable.
+        - Intercept: Baseline of the target variable for default feature settings. 
         """)
-        
+    
         log_reg = LogRegression(X_train_1, y_train) 
+        
+        # Extract coefficients and intercept
+        coef = pd.Series(log_reg.coef_[0], index=features)
+        intercept = log_reg.intercept_[0]
+        st.write(coef) # display coefficients
+        st.write("\nIntercept:", intercept) # display intercept
+        
         st.markdown(""" ##### Test Results """)
         ConfMatrix(log_reg, X_test_1, y_test)
         
@@ -327,7 +344,8 @@ if data_ready:
         
     st.markdown("""
                 > 💡 **Thought Question:** 
-                > Does scaling the data affect the given model accuracy?
+                > Does scaling the data affect the model coefficients?
+                > How about the model accuracy?
                 """)
     
     # step 4: tune with different parameters
