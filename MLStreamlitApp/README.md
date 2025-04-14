@@ -1,5 +1,6 @@
 ## Supervised Learning via Streamlit
 
+
 ### Project Overview: 
 This application provides an interactive walkthrough to training and evaluating a classification model, including data pre-processing, model selection, and parameter tuning. Specifically, this app explores:
 - **Logistic Regression:** An algorithm which predicts class by calculating the probability of each binary outcome, as influenced by the included features.
@@ -20,16 +21,21 @@ To launch via Streamlit cloud:
 
 ### App Features:
 **Data Selection:** Using the sidebar, select a sample dataset or upload a CSV of your own.
+
 **Data Processing:** Use the widgets to remove columns of choice, drop observations with missing data, and encode categorical variables.
+
 **Model and Variable Selection:**
   - Select a supervised learning model (logistic regression or 'k' nearest neighbors)
   - Choose column to be the target variable (i.e. 'label' or 'y')
   - Specify predictor variables (i.e. features or 'X')
+    
 **Model Training and Tuning:**
   - Data will be split into training and test subsets and used for classification model of choice.
   - **Logistic Regression:**
   - **kNN:**
 
+
 ### References:
+
 
 ### Visual Examples:
