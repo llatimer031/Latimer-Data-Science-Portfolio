@@ -1,13 +1,13 @@
-## Supervised Learning via Streamlit
+# Supervised Learning via Streamlit
 
 
-### Project Overview: 
+## Project Overview: 
 This application provides an interactive walkthrough to training and evaluating a classification model, including data pre-processing, model selection, and parameter tuning. Specifically, this app explores:
 - **Logistic Regression:** An algorithm which predicts class by calculating the probability of each binary outcome, as influenced by the included features.
 - **'k' Nearest Neighbors:** An algorithm designed to predict class according to a data point's similarity to its 'k' nearest neighbors in the feature space.
 
 
-### Usage:
+## Usage:
 To launch locally:
 1. **Navigate to the proper folder:** Open your terminal and move to the directory containing 'MLStreamlitApp'  
    (e.g. cd path/to/MLStreamlitApp)
@@ -19,7 +19,7 @@ To launch locally:
 To launch via Streamlit cloud:
 
 
-### App Features:
+## App Features:
 **Data Selection:** Using the sidebar, select a sample dataset or upload a CSV of your own.
 
 **Data Processing:** Use the widgets to remove columns of choice, drop observations with missing data, and encode categorical variables.
@@ -35,7 +35,7 @@ To launch via Streamlit cloud:
   - **kNN:**
 
 
-### References:
+## References:
 
 
-### Visual Examples:
+## Visual Examples:
