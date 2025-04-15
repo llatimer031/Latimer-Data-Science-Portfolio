@@ -2,38 +2,48 @@
 
 
 ## Project Overview: 
-This application provides an interactive walkthrough to training and evaluating a classification model, including data pre-processing, model selection, and parameter tuning. Specifically, this app explores:
+This application provides an interactive walkthrough to training and evaluating a supervised learning model, including data pre-processing, model selection, and parameter tuning. Specifically, this app explores:
+
 - **Logistic Regression:** An algorithm which predicts class by calculating the probability of each binary outcome, as influenced by the included features.
 - **'k' Nearest Neighbors:** An algorithm designed to predict class according to a data point's similarity to its 'k' nearest neighbors in the feature space.
 
+Logistic regression and kNN are both commonly used as classification models, however, there are notable differences that can make each model more suitable to given scenarios. This interactive app will allow users to explore datasets, tidy processes, and hyperparameters to evaluate how each model performs in different settings. 
 
 ## Usage:
 To launch locally:
 1. **Navigate to the proper folder:** Open your terminal and move to the directory containing 'MLStreamlitApp'  
    (e.g. cd path/to/MLStreamlitApp)
 2. **Run using the following command:**  
-   streamlit run Main.py
-3. **Interact with the app:** Explore different datasets, supervised learning models, and tuning parameters using the app features below.
-4. **Closing the app:** Close (or kill) the terminal in which the command was run to deactivate the app.
+   `streamlit run Main.py`
+4. **Interact with the app:** Explore different datasets, supervised learning models, and tuning parameters using the app features below.
+5. **Closing the app:** Close (or kill) the terminal in which the command was run to deactivate the app.
 
 To launch via Streamlit cloud:
-
+Insert link
 
 ## App Features:
 **Data Selection:** Using the sidebar, select a sample dataset or upload a CSV of your own.
 
-**Data Processing:** Use the widgets to remove columns of choice, drop observations with missing data, and encode categorical variables.
+**Data Processing:** 
+- For the sample data: Presets will automatically process the data for a uniform set-up of the sample data.
+- For an uploaded CSV: Use the widgets to remove columns of choice, drop observations with missing data, and encode categorical variables.
 
-**Model and Variable Selection:**
-  - Select a supervised learning model (logistic regression or 'k' nearest neighbors)
-  - Choose column to be the target variable (i.e. 'label' or 'y')
-  - Specify predictor variables (i.e. features or 'X')
+**Model and Variable Selection:** Select a supervised learning model (logistic regression or 'k' nearest neighbors).
+- For the sample data: Target variable (y) and features (X) are specified.
+- For tan uploaded CSV: Use the instructions and provided widgets to select suitable a suitable target (y) and features (X).
     
-**Model Training and Tuning:**
-  - Data will be split into training and test subsets and used for classification model of choice.
-  - **Logistic Regression:**
-  - **kNN:**
+**Model Training and Testing:**
+- Confirm that data was split into training and test subsets.
+- Choose whether or not to scale the data.
+- View performance metrics (accuracy and confusion matrix) according to model and scaling selections.
 
+**Hyperparameter Tuning:** Use the selectebox to choose a hyperparameter and explore its effects on the performance metrics.
+- Logistic Regression:
+  - Adjust 'C' on the provided slider.
+  - Input a number to set the maximum number of iterations.
+- kNN:
+  - Adjust 'k' neighbors on the provided slider.
+  - Use the selectbox to choose a distance metric.
 
 ## References:
 **Streamlit:** [Streamlit API Cheat Sheet](https://docs.streamlit.io/develop/quick-reference/cheat-sheet), [Streamlit Cloud](https://docs.streamlit.io/deploy/streamlit-community-cloud/deploy-your-app)
