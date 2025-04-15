@@ -12,14 +12,14 @@ Logistic regression and kNN are both commonly used as classification models, how
 ## Usage:
 To launch locally:
 1. **Navigate to the proper folder:** Open your terminal and move to the directory containing 'MLStreamlitApp'  
-   (e.g. cd path/to/MLStreamlitApp)
+   `cd path/to/MLStreamlitApp`
 2. **Run using the following command:**  
    `streamlit run Main.py`
 4. **Interact with the app:** Explore different datasets, supervised learning models, and tuning parameters using the app features below.
 5. **Closing the app:** Close (or kill) the terminal in which the command was run to deactivate the app.
 
 To launch via Streamlit cloud:
-Insert link
+https://latimer-data-science-portfolio-yatfbhmmaejgkactjbctyf.streamlit.app/
 
 ## App Features:
 **Data Selection:** Using the sidebar, select a sample dataset or upload a CSV of your own.
