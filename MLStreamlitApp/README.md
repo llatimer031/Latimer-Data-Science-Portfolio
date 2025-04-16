@@ -11,7 +11,6 @@ Logistic regression and kNN are both commonly used as classification models, how
 
 ## Usage:
 To launch via Streamlit cloud:
-
 https://latimer-data-science-portfolio-yatfbhmmaejgkactjbctyf.streamlit.app/
 
 To launch locally:
@@ -51,11 +50,11 @@ To launch locally:
 
 **Overview:** [Logistic Regression vs. kNN](https://www.geeksforgeeks.org/logistic-regression-vs-k-nearest-neighbors-in-machine-learning/), [Hyperparameter Tuning](https://www.geeksforgeeks.org/hyperparameter-tuning/)
 
-**Logistic Regression:** [SciKit-Learn Documentation](https://scikit-learn.org/stable/modules/generated/sklearn.linear_model.LogisticRegression.html), [Understanding 'C' Parameter](https://stackoverflow.com/questions/67513075/what-is-c-parameter-in-sklearn-logistic-regression)
+**Logistic Regression:** [SciKit-Learn Documentation](https://scikit-learn.org/stable/modules/generated/sklearn.linear_model.LogisticRegression.html), [Penalty Types](https://www.statisticshowto.com/regularization/)
 
 **kNN:** [SkiKit-Learn Documentation](https://scikit-learn.org/stable/modules/generated/sklearn.neighbors.KNeighborsClassifier.html), [Understanding Distance Metric](https://www.geeksforgeeks.org/how-to-choose-the-right-distance-metric-in-knn/)
 
 ## Visual Examples:
 The app should produce the following confusion matrices and tables:
-![Confusion matrix](Images/confusion-matrix.jpg)
-![Coefficient table](Images/coefficients.jpg)
+![Confusion matrix](Images/conf-mat.png)
+![Coefficient table](Images/log-reg-coef.png)
