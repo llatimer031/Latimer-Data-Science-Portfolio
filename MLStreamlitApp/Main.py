@@ -20,7 +20,7 @@ from sklearn.preprocessing import StandardScaler
 st.set_page_config(layout='centered')
 col1, mid, col2 = st.columns([10,1,30])
 with col1:
-    st.image("https://raw.githubusercontent.com/llatimer031/Latimer-Data-Science-Portfolio/main/MLStreamlitApp/Data/streamlit-app.jpeg", width=150)
+    st.image("https://raw.githubusercontent.com/llatimer031/Latimer-Data-Science-Portfolio/main/MLStreamlitApp/Images/streamlit-app.jpeg", width=150)
 with col2:
     st.title("Supervised Learning via Streamlit:")
     st.write("By: Lauren Latimer | GitHub: [llatimer031](https://github.com/llatimer031/Latimer-Data-Science-Portfolio/tree/main/MLStreamlitApp)")
