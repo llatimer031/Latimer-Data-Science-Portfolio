@@ -57,5 +57,5 @@ To launch locally:
 
 ## Visual Examples:
 The app should produce the following confusion matrices and tables:
-![Confusion matrix](Images/confusion-matrix.jpeg)
-![Coefficient table](Images/coefficients.jpeg)
+![Confusion matrix](Images/confusion-matrix.jpg)
+![Coefficient table](Images/coefficients.jpg)
