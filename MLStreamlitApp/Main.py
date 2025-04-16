@@ -323,9 +323,10 @@ if data_ready:
         **Model Information:** Logistic repression is a type of supervised learning 
         used for binary classification by calculating the probability a data point belongs to a given class. \n
         **Coefficients and Intercept:** \n
-        - Positive: Feature increases the log-odds (probability) of the target variable.
-        - Negative: Feature decreases the log-odds (probability) of the target variable.
-        - Intercept: Baseline of the target variable for default feature settings. 
+        - Coefficients:
+            - Positive: Feature increases the log-odds (probability) of the target variable.
+            - Negative: Feature decreases the log-odds (probability) of the target variable.
+        - Intercept: Baseline for the target variable given default feature settings. 
         """)
     
         log_reg = LogRegression(X_train_1, y_train) 
@@ -336,7 +337,8 @@ if data_ready:
         st.write(coef) # display coefficients
         st.write("\nIntercept:", intercept) # display intercept
         
-        st.markdown(""" ##### Test Results """)
+        # step 4: analyze performance using accuracy and conf matrix
+        st.subheader("Step 4: Analyze Performance")
         ConfMatrix(log_reg, X_test_1, y_test)
         
     else:
@@ -347,13 +349,35 @@ if data_ready:
         """)
         
         knn = kNNClassifier(5, X_train_1, y_train)
-        st.markdown(""" ##### Test Results """)
+        
+        # step 4: analyze performance using accuracy and conf matrix
+        st.subheader("Step 4: Analyze Performance")
         ConfMatrix(knn, X_test_1, y_test)
+    
+    
+    if st.toggle("Need help interpreting the confusion matrix? Click for explanation."):
+        st.markdown("""
+                    **Top left:** True negatives
+                    - Truly negative outcomes that were predicted as negative.
+                    - Example (penguins): is not a male (0), predicted as not a male (0).
+                    
+                    **Top right:** False positives
+                    - Truly negative outcomes that were predicted as positive.
+                    - Example (penguins): is not a male (0), predicted as a male (1).
+                    
+                    **Bottom left:** False negatives
+                    - Truly positive outcomes that were predicted as negative.
+                    - Example (penguins): is a male (1), predicted as not a male (0).
+                    
+                    **Bottom right:** True positives
+                    - Truly positive outcomes that were predicted as positive.
+                    - Example (penguins): is a male (1), predicted as a male (1).
+                    """)
         
     st.markdown("""
-                > 💡 **Thought Question:** 
-                > Does scaling the data affect the model performance?
-                """)
+    > 💭 **Thought Question:** 
+    > Does scaling the data affect the model performance?
+    """)
 
     st.divider()
 
@@ -367,8 +391,8 @@ if data_ready:
         st.markdown("""
         **Options:**
         - **penalty:** Penalties are a form of regularization, in which the model is simplified to avoid overfitting. 
-            - `'l2'` (default): Ridge regression, shrinks the weights of all coefficients, but does not eliminate any.
-            - `'l1'`: Lasso regression,limits the weight of some coefficients to 0, reducing the size of the model.
+            - `'l2'` (default): Ridge regression shrinks the weights of all coefficients, but does not eliminate any.
+            - `'l1'`: Lasso regression limits the weight of some coefficients to 0, reducing the size of the model.
             - `None`: No penalty is added.
         - **max_iter:** Maximum number of iterations taken for the solver to converge (default = 100).
         """)
@@ -379,6 +403,7 @@ if data_ready:
         if param == "penalty": # penalty is selected
             penalty = st.selectbox("Choose a penalty to apply:", ("l2", "l1", "None"))
             
+            # intialize model according to selected penalty
             if penalty == "l2":
                 log_reg_tuned = LogisticRegression(penalty=penalty) # create model with l2 penalty
             elif penalty == "l1":
@@ -395,35 +420,56 @@ if data_ready:
         
         st.subheader("Step 2: Analyze Performance")
         
-        # Extract coefficients and intercept
-        st.write("**Model Coefficients after Tuning:**")
-        coef = pd.Series(log_reg_tuned.coef_[0], index=features)
-        intercept = log_reg_tuned.intercept_[0]
-        st.write(coef) # display coefficients
-        st.write("\nIntercept:", intercept) # display intercept
+        # extract coefficients and intercept
+        coef1, coef2 = st.columns(2) # create columns to put tables side-by-side
+        
+        # set default and tuned parameter choices for clarity
+        if param == "penalty":
+            default = 'l2'
+            tuned_choice = penalty
+        else: 
+            default = '100 iterations'
+            tuned_choice = f'{max_iter} iterations'
+        
+        # input coefficients into columns
+        with coef1:
+            st.write(f"**Model Coefficients before Tuning ({default}):**")
+            coef = pd.Series(log_reg.coef_[0], index=features)
+            intercept = log_reg.intercept_[0]
+            st.write(coef) # display coefficients
+            st.write("\nIntercept:", intercept) # display intercept
+        with coef2:
+            st.write(f"**Model Coefficients after Tuning ({tuned_choice}):**")
+            coef2 = pd.Series(log_reg_tuned.coef_[0], index=features)
+            intercept2 = log_reg_tuned.intercept_[0]
+            st.write(coef2) # display coefficients
+            st.write("\nIntercept:", intercept2) # display intercept
         
         # thought questions about accuracy / conf matrix
         if param == "penalty":
             st.markdown("""
-                > 💡 **Thought Question:** 
-                > Compared to no penalty, does either penalty type reduce the coefficients? 
+                > 💭 **Thought Question:** 
+                > Compared to no penalty, does including penalties reduce the model coefficients? 
                 > Does the 'l1' penalty eliminate any coefficients completely? 
-                > What does this indicate about the data?
                 """)
-            
+        
+        st.markdown("#### Test Data Results")   
         ConfMatrix(log_reg_tuned, X_test_1, y_test) # create conf matrix for tuned model
         
         # thought questions about accuracy / conf matrix
         if param == "max_iter":
             st.markdown("""
-                > 💡 **Thought Question:** 
+                > 💭 **Thought Question:** 
                 > Is there a threshold in which increasing the number of iterations no longer changes the outcomes?
                 """)
             
         else: # add question about penalty
             st.markdown("""
-                > 💡 **Thought Question:** 
-                > 
+                > 💭 **Thought Question:** 
+                > Does penalizing the coefficients increase or decrease model accuracy? \n
+                > 💡 **Analysis:**
+                > If adding penalties increase the model performance, the non-penalized model may be overfit. 
+                > If the addition of penalties does not increase model performance, then overfitting may not be a major concern for the model. 
                 """)
         
     else: # model_choice == 'kNN'
@@ -445,8 +491,7 @@ if data_ready:
             knn_tuned = kNNClassifier(k, X_train_1, y_train) # create model with selected k
             
             # add option to find best k
-            st.markdown("> ❓ Don't know what 'k' to use?")
-            if st.toggle("Find best 'k'"): # create button to plot best k
+            if st.toggle("Not sure what 'k' to use? Click here to find best 'k'"): # create button to plot best k
                 k_values = range(1, 11, 1)
                 accuracies = []
 
@@ -478,13 +523,13 @@ if data_ready:
         # thought questions / analysis
         if param == "metric":
             st.markdown("""
-                > 💡 **Thought Question:** 
+                > 💭 **Thought Question:** 
                 > Compare the outcomes for different metrics using both scaled and unscaled data.
                 > Why might these metrics have a smaller affect on scaled data?
                 """)
         else: # add question about k
             st.markdown("""
-                > 💡 **Thought Question:** 
+                > 💭 **Thought Question:** 
                 > 
                 """)
         
