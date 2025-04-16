@@ -1,3 +1,5 @@
+# --------------- PACKAGES --------------- #
+
 import streamlit as st
 
 import pandas as pd
@@ -361,73 +363,101 @@ if data_ready:
     st.write("**Overview:** Fine tuning a model helps to find optimal hyperparameters to maximize accuracy and other performance indicators.")
     
     if model_choice == 'Logistic Regression':
+        # explain hyperparameter options
         st.markdown("""
         **Options:**
-        - **C:** Inverse of regularization strength (default = 1.0)
-            - Small c --> stronger regularization --> Model may be underfit.
-            - Large c --> weaker regularization --> model may be overfit.
+        - **penalty:** Penalties are a form of regularization, in which the model is simplified to avoid overfitting. 
+            - `'l2'` (default): Ridge regression, shrinks the weights of all coefficients, but does not eliminate any.
+            - `'l1'`: Lasso regression,limits the weight of some coefficients to 0, reducing the size of the model.
+            - `None`: No penalty is added.
         - **max_iter:** Maximum number of iterations taken for the solver to converge (default = 100).
         """)
         
         st.subheader("Step 1: Choose a Hyperparameter")
-        param = st.selectbox("Select a parameter to explore:", ("C", "max_iter"))
+        param = st.selectbox("Select a parameter to explore:", ("penalty", "max_iter"))
         
-        if param == "C":
-            C = st.slider("Select a 'C' value to use:", 0.01, 10.0)
-            log_reg_tuned = LogisticRegression(C=C)
-            log_reg_tuned.fit(X_train_1, y_train)
+        if param == "penalty": # penalty is selected
+            penalty = st.selectbox("Choose a penalty to apply:", ("l2", "l1", "None"))
             
-        else:
+            if penalty == "l2":
+                log_reg_tuned = LogisticRegression(penalty=penalty) # create model with l2 penalty
+            elif penalty == "l1":
+                log_reg_tuned = LogisticRegression(penalty='l1', solver='liblinear') # specify solver that supports l1
+            else:
+                log_reg_tuned = LogisticRegression(penalty=None) # create model with no penalty
+                
+            log_reg_tuned.fit(X_train_1, y_train) # train model on data
+            
+        else: # max_iter is selected
             max_iter = st.number_input("Input a number of iterations to run:", 1, 10000)
-            log_reg_tuned = LogisticRegression(max_iter=max_iter)
-            log_reg_tuned.fit(X_train_1, y_train)
+            log_reg_tuned = LogisticRegression(max_iter=max_iter) # create model with specified iterations
+            log_reg_tuned.fit(X_train_1, y_train) # train model on data
         
         st.subheader("Step 2: Analyze Performance")
-        ConfMatrix(log_reg_tuned, X_test_1, y_test)
         
-        # thought questions / analysis
+        # Extract coefficients and intercept
+        st.write("**Model Coefficients after Tuning:**")
+        coef = pd.Series(log_reg_tuned.coef_[0], index=features)
+        intercept = log_reg_tuned.intercept_[0]
+        st.write(coef) # display coefficients
+        st.write("\nIntercept:", intercept) # display intercept
+        
+        # thought questions about accuracy / conf matrix
+        if param == "penalty":
+            st.markdown("""
+                > 💡 **Thought Question:** 
+                > Compared to no penalty, does either penalty type reduce the coefficients? 
+                > Does the 'l1' penalty eliminate any coefficients completely? 
+                > What does this indicate about the data?
+                """)
+            
+        ConfMatrix(log_reg_tuned, X_test_1, y_test) # create conf matrix for tuned model
+        
+        # thought questions about accuracy / conf matrix
         if param == "max_iter":
             st.markdown("""
                 > 💡 **Thought Question:** 
                 > Is there a threshold in which increasing the number of iterations no longer changes the outcomes?
                 """)
-        else: # add question about C
+            
+        else: # add question about penalty
             st.markdown("""
                 > 💡 **Thought Question:** 
                 > 
                 """)
         
-    else:
+    else: # model_choice == 'kNN'
+        # explain hyperparameter options
         st.markdown("""
         **Options:**
         - **n_neighbors:** Specifies 'k', or the number of neighbors to compare each test point to (default = 5)).
         - **metric:** Specifies the metric used to calculate distance between data points. 
-            - 'minkowski' (default): standard euchlidean (straight-line) distance
-            - 'manhattan': grid-like distance between coordinates
-            - 'chebyshev': maximum absolute difference
+            - `minkowski` (default): standard euchlidean (straight-line) distance
+            - `manhattan`: grid-like distance between coordinates
+            - `chebyshev`: maximum absolute difference
         """)
         
         st.subheader("Step 1: Choose a Hyperparameter")
         param = st.selectbox("Select a parameter to explore:", ("n_neighbors", "metric"))
         
         if param == "n_neighbors":
-            
             k = st.slider("Select 'k' value to use:", 1, 10)
-            knn_tuned = kNNClassifier(k, X_train_1, y_train)
+            knn_tuned = kNNClassifier(k, X_train_1, y_train) # create model with selected k
             
+            # add option to find best k
             st.markdown("> ❓ Don't know what 'k' to use?")
-            if st.button("Find best 'k'"): # create button to plot best k
+            if st.toggle("Find best 'k'"): # create button to plot best k
                 k_values = range(1, 11, 1)
                 accuracies = []
 
-                # Loop through different values of k, train a KNN model on scaled data, and record the accuracy for each
+                # loop through different values of k, train a KNN model on data, and record the accuracy for each
                 for k in k_values:
                     knn_temp = KNeighborsClassifier(n_neighbors=k)
                     knn_temp.fit(X_train_1, y_train)
                     y_temp_pred = knn_temp.predict(X_test_1)
                     accuracies.append(accuracy_score(y_test, y_temp_pred))
 
-                # Plot accuracy vs. number of neighbors (k) for the scaled data
+                # plot accuracy vs. number of neighbors (k) for the data
                 fig = plt.figure(figsize=(8, 5))
                 plt.plot(k_values, accuracies, marker='o')
                 plt.title('Accuracy vs. Number of Neighbors (k)')
@@ -436,14 +466,14 @@ if data_ready:
                 plt.xticks(k_values)
                 st.pyplot(fig)
                 
-        else:
+        else: # if param == "metric"
             chosen_metric = st.selectbox("Select a metric:", ('minkowski', 'manhattan', 'chebyshev'))
-            knn_tuned = KNeighborsClassifier(metric=chosen_metric)
-            knn_tuned.fit(X_train_1, y_train)
+            knn_tuned = KNeighborsClassifier(metric=chosen_metric) # create model with the selected metric
+            knn_tuned.fit(X_train_1, y_train) # train new model on data
             
                 
         st.subheader("Step 2: Analyze Performance")
-        ConfMatrix(knn_tuned, X_test_1, y_test)
+        ConfMatrix(knn_tuned, X_test_1, y_test) # create conf matrix for tuned model
         
         # thought questions / analysis
         if param == "metric":
