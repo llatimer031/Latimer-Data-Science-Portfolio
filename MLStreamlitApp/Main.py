@@ -41,7 +41,13 @@ def ConfMatrix(model, X_test, y_test):
     y_pred = model.predict(X_test)
     accuracy = accuracy_score(y_test, y_pred)
     st.write(f"**Accuracy:** {accuracy:.2f}")
-    
+    if accuracy >= 0.75:
+        st.success(f"{accuracy * 100:.0f}% of the test data was correctly classified.")
+    elif accuracy >= 0.50:
+        st.warning(f"{accuracy * 100:.0f}% of the test data was correctly classified.")
+    else:
+        st.error(f"{accuracy * 100:.0f}% of the test data was correctly classified.")
+        
     cm = confusion_matrix(y_test, y_pred)
 
     fig, ax = plt.subplots()
@@ -344,23 +350,27 @@ if data_ready:
         
     st.markdown("""
                 > 💡 **Thought Question:** 
-                > Does scaling the data affect the model coefficients?
-                > How about the model accuracy?
+                > Does scaling the data affect the model performance?
                 """)
+
+    st.divider()
+
+    # PART 4: HYPERPARAMETER TUNING
+    st.header("Part 4: Hyperparameter Tuning")
     
-    # step 4: tune with different parameters
-    st.subheader("Step 4: Hyperparameter Tuning")
     st.write("**Overview:** Fine tuning a model helps to find optimal hyperparameters to maximize accuracy and other performance indicators.")
     
     if model_choice == 'Logistic Regression':
         st.markdown("""
         **Options:**
         - **C:** Inverse of regularization strength (default = 1.0)
-            - Small c --> stronger regularization --> model may be underfit.
+            - Small c --> stronger regularization --> Model may be underfit.
             - Large c --> weaker regularization --> model may be overfit.
         - **max_iter:** Maximum number of iterations taken for the solver to converge (default = 100).
         """)
-        param = st.selectbox("Choose a parameter:", ("C", "max_iter"))
+        
+        st.subheader("Step 1: Choose a Hyperparameter")
+        param = st.selectbox("Select a parameter to explore:", ("C", "max_iter"))
         
         if param == "C":
             C = st.slider("Select a 'C' value to use:", 0.01, 10.0)
@@ -368,10 +378,11 @@ if data_ready:
             log_reg_tuned.fit(X_train_1, y_train)
             
         else:
-            max_iter = st.slider("Select a number of iterations to run:", 10, 1000)
+            max_iter = st.number_input("Input a number of iterations to run:", 1, 10000)
             log_reg_tuned = LogisticRegression(max_iter=max_iter)
             log_reg_tuned.fit(X_train_1, y_train)
-            
+        
+        st.subheader("Step 2: Analyze Performance")
         ConfMatrix(log_reg_tuned, X_test_1, y_test)
         
         # thought questions / analysis
@@ -379,6 +390,11 @@ if data_ready:
             st.markdown("""
                 > 💡 **Thought Question:** 
                 > Is there a threshold in which increasing the number of iterations no longer changes the outcomes?
+                """)
+        else: # add question about C
+            st.markdown("""
+                > 💡 **Thought Question:** 
+                > 
                 """)
         
     else:
@@ -390,7 +406,9 @@ if data_ready:
             - 'manhattan': grid-like distance between coordinates
             - 'chebyshev': maximum absolute difference
         """)
-        param = st.selectbox("Choose a hyperparameter:", ("n_neighbors", "metric"))
+        
+        st.subheader("Step 1: Choose a Hyperparameter")
+        param = st.selectbox("Select a parameter to explore:", ("n_neighbors", "metric"))
         
         if param == "n_neighbors":
             
@@ -424,7 +442,7 @@ if data_ready:
             knn_tuned.fit(X_train_1, y_train)
             
                 
-        st.markdown(""" ##### Test Results """)
+        st.subheader("Step 2: Analyze Performance")
         ConfMatrix(knn_tuned, X_test_1, y_test)
         
         # thought questions / analysis
@@ -433,6 +451,11 @@ if data_ready:
                 > 💡 **Thought Question:** 
                 > Compare the outcomes for different metrics using both scaled and unscaled data.
                 > Why might these metrics have a smaller affect on scaled data?
+                """)
+        else: # add question about k
+            st.markdown("""
+                > 💡 **Thought Question:** 
+                > 
                 """)
         
 else:
