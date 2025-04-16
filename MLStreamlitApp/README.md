@@ -19,6 +19,7 @@ To launch locally:
 5. **Closing the app:** Close (or kill) the terminal in which the command was run to deactivate the app.
 
 To launch via Streamlit cloud:
+
 https://latimer-data-science-portfolio-yatfbhmmaejgkactjbctyf.streamlit.app/
 
 ## App Features:
@@ -39,9 +40,9 @@ https://latimer-data-science-portfolio-yatfbhmmaejgkactjbctyf.streamlit.app/
 
 **Hyperparameter Tuning:** Use the selectebox to choose a hyperparameter and explore its effects on the performance metrics.
 - Logistic Regression:
-  - Adjust 'C' on the provided slider.
+  - Use the selectbox to choose a penalty to apply. 
   - Input a number to set the maximum number of iterations.
-- kNN:
+- 'k' Nearest Neighbors:
   - Adjust 'k' neighbors on the provided slider.
   - Use the selectbox to choose a distance metric.
 
