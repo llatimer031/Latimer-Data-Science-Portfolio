@@ -10,6 +10,10 @@ This application provides an interactive walkthrough to training and evaluating 
 Logistic regression and kNN are both commonly used as classification models, however, there are notable differences that can make each model more suitable to given scenarios. This interactive app will allow users to explore datasets, tidy processes, and hyperparameters to evaluate how each model performs in different settings. 
 
 ## Usage:
+To launch via Streamlit cloud:
+
+https://latimer-data-science-portfolio-yatfbhmmaejgkactjbctyf.streamlit.app/
+
 To launch locally:
 1. **Navigate to the proper folder:** Open your terminal and move to the directory containing 'MLStreamlitApp'  
    `cd path/to/MLStreamlitApp`
@@ -17,10 +21,6 @@ To launch locally:
    `streamlit run Main.py`
 4. **Interact with the app:** Explore different datasets, supervised learning models, and tuning parameters using the app features below.
 5. **Closing the app:** Close (or kill) the terminal in which the command was run to deactivate the app.
-
-To launch via Streamlit cloud:
-
-https://latimer-data-science-portfolio-yatfbhmmaejgkactjbctyf.streamlit.app/
 
 ## App Features:
 **Data Selection:** Using the sidebar, select a sample dataset or upload a CSV of your own.
@@ -56,3 +56,6 @@ https://latimer-data-science-portfolio-yatfbhmmaejgkactjbctyf.streamlit.app/
 **kNN:** [SkiKit-Learn Documentation](https://scikit-learn.org/stable/modules/generated/sklearn.neighbors.KNeighborsClassifier.html), [Understanding Distance Metric](https://www.geeksforgeeks.org/how-to-choose-the-right-distance-metric-in-knn/)
 
 ## Visual Examples:
+The app should produce the following confusion matrices and tables:
+[Confusion matrix](Images/conf-mat.jpeg)
+[Coefficient table](Images/log-reg-coef.jpeg)
