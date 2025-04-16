@@ -449,7 +449,7 @@ if data_ready:
         if param == "penalty":
             st.markdown("""
                 > 💭 **Thought Question:** 
-                > Compared to no penalty, does including penalties reduce the model coefficients? 
+                > How do the model coefficients change when penalties are added? 
                 > Does the 'l1' penalty eliminate any coefficients completely? 
                 """)
         
@@ -460,7 +460,10 @@ if data_ready:
         if param == "max_iter":
             st.markdown("""
                 > 💭 **Thought Question:** 
-                > Is there a threshold in which increasing the number of iterations no longer changes the outcomes?
+                > Is there a threshold in which increasing the number of iterations no longer changes the outcomes? \n
+                > 💡 **Analysis:** 
+                > When max_iter is high enough, the model will converge before the manual stopping point is reached. 
+                > If model accuracy is still increasing as you increase max_iter, then the model is likely being stopped before full convergence.
                 """)
             
         else: # add question about penalty
@@ -487,12 +490,12 @@ if data_ready:
         param = st.selectbox("Select a parameter to explore:", ("n_neighbors", "metric"))
         
         if param == "n_neighbors":
-            k = st.slider("Select 'k' value to use:", 1, 10)
+            k = st.slider("Select 'k' value to use:", 1, 20)
             knn_tuned = kNNClassifier(k, X_train_1, y_train) # create model with selected k
             
             # add option to find best k
             if st.toggle("Not sure what 'k' to use? Click here to find best 'k'"): # create button to plot best k
-                k_values = range(1, 11, 1)
+                k_values = range(1, 21, 1)
                 accuracies = []
 
                 # loop through different values of k, train a KNN model on data, and record the accuracy for each
@@ -525,12 +528,15 @@ if data_ready:
             st.markdown("""
                 > 💭 **Thought Question:** 
                 > Compare the outcomes for different metrics using both scaled and unscaled data.
-                > Why might these metrics have a smaller affect on scaled data?
+                > Why might these metrics have a smaller affect on scaled data? \n
+                > 💡 **Analysis:** Scaling the data sets equal variances to each feature, 
+                > so no single feature will outweigh the others in distance calculations.
                 """)
         else: # add question about k
             st.markdown("""
-                > 💭 **Thought Question:** 
-                > 
+                > 💭 **Thought Question:** Why is it important to choose an optimal 'k'? \n
+                > 💡 **Analysis:**  Too small of a k may be sensitive to noise and lead to overfitting, 
+                > whereas too large of a k may overgeneralize and cause underfitting.
                 """)
         
 else:
