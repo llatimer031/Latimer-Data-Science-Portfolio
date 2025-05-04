@@ -1,63 +1,77 @@
 # --------------- PACKAGES --------------- #
 
+# import streamlit
 import streamlit as st
 
+# import data analysis and visualization packages
 import pandas as pd
 import seaborn as sns
 import matplotlib.pyplot as plt
 
-from sklearn.neighbors import KNeighborsClassifier
-from sklearn.linear_model import LogisticRegression
-from sklearn.tree import DecisionTreeClassifier
-
+# import machine learning packages
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score, confusion_matrix
 from sklearn.preprocessing import StandardScaler
+
+# import unsupervised learning packages
+
 
 # --------------- TITLE --------------- #
 
 # set up title, author, and description
 st.set_page_config(layout='centered')
-col1, mid, col2 = st.columns([10,1,30])
-with col1:
+col1, mid, col2 = st.columns([10,1,30]) # splits the page into three columned sections
+with col1: 
+    # add image to first column
     st.image("https://raw.githubusercontent.com/llatimer031/Latimer-Data-Science-Portfolio/main/MLStreamlitApp/Images/streamlit-app.jpeg", width=150)
 with col2:
-    st.title("Supervised Learning via Streamlit:")
+    # add title and other info to second column
+    st.title("(Un)Supervised Learning via Streamlit:")
     st.write("By: Lauren Latimer | GitHub: [llatimer031](https://github.com/llatimer031/Latimer-Data-Science-Portfolio/tree/main/MLStreamlitApp)")
     
-st.header("An interactive walkthrough data processing, model selection, and parameter tuning for classification models.")
+st.header("An interactive walkthrough data processing, model selection, and parameter tuning for clustering models.")
 
 # --------------- FUNCTIONS --------------- #
 
-def LogRegression(X_train, y_train):
+# run a k means clustering model
+def kCluster(X_train, y_train):   
     model = LogisticRegression()
     model.fit(X_train, y_train)
     return model
 
-def kNNClassifier(k, X_train, y_train):
+# run a hierarchical clustering model
+def HierCluster(X_train, y_train):
     model = KNeighborsClassifier(n_neighbors=k)
     model.fit(X_train, y_train)
     return model
 
-def ConfMatrix(model, X_test, y_test):
+# calculate accuracy and display a confusion matrix 
+def ConfMatrix(model, X_test, y_test):  
+    # predict the y variables from the test set
     y_pred = model.predict(X_test)
+    
+    # calculate how many of the predicted y variables were accurate 
     accuracy = accuracy_score(y_test, y_pred)
     st.write(f"**Accuracy:** {accuracy:.2f}")
+    # display a different color message according to the accuracy of the model
     if accuracy >= 0.75:
         st.success(f"{accuracy * 100:.0f}% of the test data was correctly classified.")
     elif accuracy >= 0.50:
         st.warning(f"{accuracy * 100:.0f}% of the test data was correctly classified.")
-    else:
+    else: # accuracy is less than 50%
         st.error(f"{accuracy * 100:.0f}% of the test data was correctly classified.")
         
+    # create the confusion matrix
     cm = confusion_matrix(y_test, y_pred)
 
+    # add the matrix to a figure and label axis
     fig, ax = plt.subplots()
     sns.heatmap(cm, annot=True, fmt='d', cmap='Blues', ax=ax)
     ax.set_title('Confusion Matrix')
     ax.set_xlabel('Predicted')
     ax.set_ylabel('Actual')
 
+    # display figure in streamlit app
     st.pyplot(fig)
     
 # --------------- SIDEBAR --------------- #
@@ -65,32 +79,43 @@ def ConfMatrix(model, X_test, y_test):
 # create sidebar to customize data and model options
 st.sidebar.header("Data Options")
 
+# allow the use to choose a to use a sample dataset or upload a CSV
 data_source = st.sidebar.radio("Choose a data source:",
     ("Use Sample Dataset", "Upload CSV"))
     
-# upload a CSV file
+# option (a) upload a CSV file
 if data_source == "Upload CSV":
-    st.sidebar.write("**Note:** This app explores classification models, which require at least one (binary) categorical variable.")
+    st.sidebar.write("**Note:** Add any relevant notes")
+    
+    # provide space to upload a CSV file of choice
     uploaded_file = st.sidebar.file_uploader("Upload your CSV file", type=["csv"])
-    if uploaded_file is not None:
-        df = pd.read_csv(uploaded_file)
+    
+    if uploaded_file is not None: # if a file has been uploaded
+        # use pandas to read CSV into a python dataframe
+        df = pd.read_csv(uploaded_file) 
         st.success("Custom dataset uploaded successfully.")
-    else:
+    else: # if a file has not been uploaded
         st.warning("Please upload a CSV file to proceed.")
-        df = None
+        # set python dataframe to None
+        df = None 
 
-# choose from sample datasets
+# option (b) choose from sample datasets
 else:
+    # allow users to select which sample dataset they want to use
     sample_data = st.sidebar.selectbox("Choose a sample dataset:", ['penguins', 'titanic'])
+    
     if sample_data == 'penguins':
-        df = sns.load_dataset("penguins") #placeholder data
+        # load Seaborn's penguins dataset and assign to python dataframe
+        df = sns.load_dataset("penguins") 
     elif sample_data == 'titanic':
-        df = sns.load_dataset("titanic") #placeholder data
+        # load Seaborn's titanic dataset and assign to python dataframe
+        df = sns.load_dataset("titanic")
 
+# runs if data is in the df, whether it be from a CSV or sample data
 if df is not None:
     # add basic file information to sidebar
     st.sidebar.subheader("File Information")
-    original_dim = df.shape
+    original_dim = df.shape # gets dimensions of original df
     st.sidebar.write("Number of Rows:", original_dim[0])
     st.sidebar.write("Number of Columns:", original_dim[1])
 
@@ -106,41 +131,46 @@ st.divider() # horizontal separator
 
 # ----- FOR CUSTOM CSV ----- #
 
+# for an uploaded csv, allow the user to perform custom processing and variable selection
 if data_source == "Upload CSV":
     
     # PART 1: DATA PROCESSING
     st.header("Part 1: Processing the Data")
 
-    data_processed = False
+    data_processed = False # initialize as false to check when processing is complete
     if df is not None:
     
-        # preview the chosen dataset 
+        # preview the first few rows of the chosen dataset 
         st.write("Below is a preview of your chosen dataset:")
         st.dataframe(df.head())
     
         # step 1: include only variables of choice
         st.subheader("Step 1: Filter Columns")
+        # explain purpose of removing irrelevant or unhelpful variables
         st.markdown("""
         **Purpose:** Some columns may not contain helpful information, especially if many of its observations are missing values.\n
         **Action:** The sidebar shows the number of missing values in each column. Remove irrelevant variables before continuing to preserve the number of observations.
         """)
+        # allow user to select from a list of the df's columns
         cols = st.multiselect("Select columns to **remove**:", df.columns)
-        df = df.drop(columns=cols)
+        df = df.drop(columns=cols) # drop the selected columns
     
         # step 2: remove missing values
         st.subheader("Step 2: Handle Missing Values")
+        # explain purpose of removing missing values
         st.markdown("""
         **Purpose:** The machine learning algorithms used in this app require a dataset without missing values.\n
         **Action:** While there are several approaches to handle missing data, 
         including dropping or imputing values, this app will **drop any rows with missing values** for simplicity.
         """)
         df = df.dropna() # remove rows with missing values
-        new_dim = df.shape # get dimensions of new df
+        new_dim = df.shape # get dimensions of new df, after removing incomplete rows
         incomplete_rows = original_dim[0] - new_dim[0] # calculate how many rows were removed
         st.success(f"{incomplete_rows} incomplete observations were successfully dropped.")
     
         # step 3: encode variables
         st.subheader("Step 3: Encode Categorical Variables")
+        # explain purpose of encoding variables
         st.markdown("""
         **Purpose:** Many machine learning algorithms require numerical inputs, 
         which inhibits models from interpreting categorical variables in their natural state.\n
@@ -152,12 +182,14 @@ if data_source == "Upload CSV":
         """)
         # create list of categorical columns to select from
         cat_cols = df.select_dtypes(include=['object', 'category']).columns.tolist()
+        # allow user to select multiple of the categorical columns to encode
         encode_cols = st.multiselect("Select categorical columns to encode:", cat_cols)
         
-        if encode_cols:
+        if encode_cols: # if the user selected columns
+            # one-hot encode variables and save to existing df
             df = pd.get_dummies(df, columns=encode_cols, drop_first=True)
             st.success("Selected columns were encoded using one-hot encoding.")
-        else:
+        else: # if the user has not selected any columns
             st.warning("No columns selected for encoding.")
 
         # preview processed dataset
@@ -172,10 +204,13 @@ if data_source == "Upload CSV":
     # PART 2: VARIABLE SELECTION
     st.header("Part 2: Model and Variable Selection") 
 
-    data_ready = False
-    if data_processed:
+    data_ready = False # initialize as false to check when data is ready to continue to model training
+    
+    if data_processed: # checks if data has been successfully pre-processed in last step
+        
         # step 1: choose a model type to train
         st.subheader("Step 1: Choose a Classification Model")
+        # allow user to choose between model types
         model_choice = st.selectbox('Select Model Type:', ['Logistic Regression', 'kNN'])
 
         # step 2: specify x and y columns
@@ -186,31 +221,30 @@ if data_source == "Upload CSV":
         Please select a categorical variable. 
         Note that if you chose a logistic regression model, the target variable must also be binary.
         """)
-        # select y variable
+        # allow user to select a y variable among the columns
         label = st.selectbox("Select the target column (y):", df.columns)
-        if label:
-            # st.write(f"You have chosen the **{label}** variable to be your label.")
-            y = df[label]
-            st.dataframe(y.head()) 
+        if label: # checks that a y variable has been chosen by user
+            y = df[label] # creates variable y by sub setting column from df
+            st.dataframe(y.head()) # preview the first few rows of the y variable
 
         st.markdown("""
         **Features:** Please select numeric or encoded categorical variables.
         """)
         # limit feature selection to viable data types
-        numeric_columns = df.select_dtypes(include=['int64', 'float64', 'int32', 'float32', 'bool']).columns.tolist()
+        numeric_columns = df.select_dtypes(include=['int64', 'float64', 'int32', 'float32', 'bool']).columns.tolist() # extracts numeric cols
         if label in numeric_columns:
             numeric_columns.remove(label) # label cannot be chosen as feature
-        # select x variables 
+            
+        # allow user to select x variables from the numeric columns
         features = st.multiselect("Select the feature columns (X):", numeric_columns)
-        if features:
-            # st.write(f"You have chosen the following features: **{features}**")
-            X = df[features]
-            st.dataframe(X.head())
-        else:
+        if features: # ensures feature columns have been selected by user
+            X = df[features] # create df X by sub setting the selected feature columns from the main df
+            st.dataframe(X.head()) # displays first few rows of X df
+        else: # no feature variables have been selected
             st.warning("Please select at least one feature.")
         
         
-        if 'X' in locals() and 'y' in locals(): # ensures X and y have been selected
+        if 'X' in locals() and 'y' in locals(): # ensures X and y variables have been selected
             data_ready = True # mark data as ready to continue
 
     else: # data_processed = False
@@ -218,32 +252,36 @@ if data_source == "Upload CSV":
 
 # ----- FOR SAMPLE DATA ----- #
 
-else: # elif sample data set used
+# for a sample dataset, the app processes the data and selected variables automatically
+else: # elif sample data set used (not custom CSV)
     
     # PART 1: DATA PROCESSING
     st.header("Part 1: Processing the Data")
 
-    data_processed = False
+    data_processed = False # initialize as false to check when pre processing is complete
+    
     if df is not None:
     
-        # preview the chosen dataset 
+        # preview the first few rows of the chosen dataset 
         st.write("Below is a preview of your chosen dataset:")
         st.dataframe(df.head())
 
         if sample_data == 'penguins':
             selected_cols = ['sex', 'bill_length_mm', 'bill_depth_mm', 'flipper_length_mm', 'body_mass_g']
-            df = df[selected_cols]
+            df = df[selected_cols] # subset the data by the selected columns
             df = df.dropna() # remove missing values
-            df = pd.get_dummies(df, columns=['sex'], drop_first=True) # encode age column
+            df = pd.get_dummies(df, columns=['sex'], drop_first=True) # encode sex column
+            
         else: # sample_data == 'titanic'
             selected_cols = ['survived', 'pclass', 'age', 'sibsp', 'parch', 'fare', 'sex']
-            df = df[selected_cols]
+            df = df[selected_cols] # subset the data by selected columns
             df = df.dropna() # remove missing values
             df = pd.get_dummies(df, columns=['sex'], drop_first=True) # encode age column
             
         st.write("After removing unwanted variables, handling missing values, and encoding categorical variables, the dataset looks like:")
-        st.dataframe(df.head())
-        data_processed = True
+        st.dataframe(df.head()) # preview the dataset after processing
+        
+        data_processed = True # mark data as processed 
         
     else: # df does not exist or is empty
         st.warning("Data is not ready for this step.")
@@ -253,10 +291,12 @@ else: # elif sample data set used
     # PART 2: VARIABLE SELECTION
     st.header("Part 2: Model and Variable Selection") 
 
-    data_ready = False
-    if data_processed:
+    data_ready = False # initialize as false to check when data is ready to continue to modeling stages
+    
+    if data_processed: # checks that data has been successfully processed
         # step 1: choose a model type to train
         st.subheader("Step 1: Choose a Classification Model")
+        # allow user to select a machine learning model
         model_choice = st.selectbox('Select Model Type:', ['Logistic Regression', 'kNN'])
 
         # step 2: specify x and y columns
@@ -264,15 +304,19 @@ else: # elif sample data set used
         
         if sample_data == 'penguins':
             features = ['bill_length_mm', 'bill_depth_mm', 'flipper_length_mm', 'body_mass_g']
-            X = df[features]
-            y = df['sex_Male']
+            X = df[features] # create X df by subsetting feature columns from original df
+            y = df['sex_Male'] # create Y df by subsetting y col from original df
+            
+            # preview selected variables
             st.write(f"**Target Variable:** {'sex_Male'}")
             st.write(f"**Feautres:** {features}")
             
         else: # sample_data == 'titanic'
             features = ['pclass', 'age', 'sibsp', 'parch', 'fare', 'sex_male']
-            X = df[features]
-            y = df['survived']
+            X = df[features] # create X df by subsetting feature columns from original df
+            y = df['survived'] # create Y df by subsetting y col from original df
+            
+            # preview selected variables
             st.write(f"**Target Variable:** {'survived'}")
             st.write(f"**Feautres:** {features}")
         
@@ -288,10 +332,12 @@ st.divider()
 
 # PART 3: TRAIN MODEL
 st.header("Part 3: Train a Classification Model")
-if data_ready:
+
+if data_ready: # checks if data is ready from previous steps
     
     # step 1: split into training and test data
     st.subheader("Step 1: Train-Test Split")
+    # use train_test_split to divide data into 80% training data and 20% test data
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
     st.success("The data has been split into 80% training data and 20% test data.")
     
@@ -301,15 +347,18 @@ if data_ready:
     **Purpose:** For models sensitive to the scale of features, scaling can substantially improve performance. \n
     **Action:** Standardize the features (mean = 0, standard deviation = 1) and apply to train and test data. \n  
     """)
+    # allow user to select whether to scale the data or not
     scale_choice = st.radio("Would you like to perform scaling?", ("Yes", "No"))
+    
     if scale_choice == 'Yes':
-        scaler = StandardScaler()
+        scaler = StandardScaler() 
         # fit the scaler on the training data and transform both training and test data
         X_train_1 = scaler.fit_transform(X_train)
         X_test_1 = scaler.transform(X_test)
         st.success("The data has been scaled.")
-    else: 
-        X_train_1 = X_train
+    else: # scale_choice = no
+        # keep X_train and X_test the same
+        X_train_1 = X_train 
         X_test_1 = X_test
         st.warning("Continue without scaling.")
         
