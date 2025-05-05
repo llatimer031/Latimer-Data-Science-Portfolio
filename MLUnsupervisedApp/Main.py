@@ -38,27 +38,36 @@ st.header("An interactive walkthrough data processing, model selection, and para
 # --------------- FUNCTIONS --------------- #
 
 # run a k means clustering model
+def graph_PCA(X, cluster_labels):
+    pca = PCA(n_components=2)
+    X_pca = pca.fit_transform(X)
+    
+    plt.figure(figsize=(8, 6))
+    plt.scatter(X_pca[clusters == 0, 0], X_pca[clusters == 0, 1],
+            c='navy', alpha=0.7, edgecolor='k', s=60, label='Cluster 0')
+    plt.scatter(X_pca[clusters == 1, 0], X_pca[clusters == 1, 1],
+            c='darkorange', alpha=0.7, edgecolor='k', s=60, label='Cluster 1')
+    plt.xlabel('Principal Component 1')
+    plt.ylabel('Principal Component 2')
+    plt.legend(loc='best')
+    plt.grid(True)
+    plt.show()
+    
 def kCluster(k, X):   
     kmeans = KMeans(n_clusters=k, random_state=42)
     clusters = kmeans.fit_predict(X)
     return kmeans, clusters
 
 # run a hierarchical clustering model
-def HierCluster(X):
-    Z = linkage(X_train, method="ward")
-    return model
-
-def graph_PCA(X, cluster_labels):
-    pca = PCA(n_components=2)
-    X_pca = pca.fit_transform(X)
+def hier_cluster_graph(X, y, method):
+    Z = linkage(X, method=method)
     
-    plt.figure(figsize=(10, 7))
-    scatter = plt.scatter(X_pca[:, 0], X_pca[:, 1], c=cluster_labels, cmap='viridis', s=60, edgecolor='k', alpha=0.7)
-    plt.xlabel('Principal Component 1')
-    plt.ylabel('Principal Component 2')
-    plt.title('Agglomerative Clustering on Country Data (via PCA)')
-    plt.legend(*scatter.legend_elements(), title="Clusters")
-    plt.grid(True)
+    labels = y.to_list()
+
+    plt.figure(figsize=(20, 7))
+    dendrogram(Z, labels = labels)
+    plt.title("Hierarchical Clustering Dendrogram")
+    plt.ylabel("Distance")
     plt.show()
     
 def elbow_plot(k_range, X):
@@ -82,10 +91,10 @@ def sil_plot_kmeans(k_range, X):
     silhouette_scores = [] 
     
     for k in k_range:
-    km = KMeans(n_clusters=k, random_state=42)
-    km.fit(X_std)
-    labels = km.labels_
-    silhouette_scores.append(silhouette_score(X, labels))
+        km = KMeans(n_clusters=k, random_state=42)
+        km.fit(X_std)
+        labels = km.labels_
+        silhouette_scores.append(silhouette_score(X, labels))
     
     # plot the result
     plt.subplot(1, 2, 2)
@@ -123,8 +132,6 @@ def sil_plot_hier(k_range, X):
     best_k = k_range[np.argmax(silhouette_scores)]
     return best_k
 
-# Optional: print best k
-best_k = k_range[np.argmax(sil_scores)]
 # --------------- SIDEBAR --------------- #
 
 # create sidebar to customize data and model options
@@ -223,13 +230,9 @@ if data_source == "Upload CSV":
         st.subheader("Step 3: Encode Categorical Variables")
         # explain purpose of encoding variables
         st.markdown("""
-        **Purpose:** Many machine learning algorithms require numerical inputs, 
-        which inhibits models from interpreting categorical variables in their natural state.\n
+        **Purpose:** These clustering algorithms require numerical inputs, 
+        which inhibits them from interpreting categorical variables in their natural state.\n
         **Action:** Convert categorical variables into numeric form using one-hot encoding. \n  
-        **Note:** Categorical features must be encoded to use in these models. \n
-        Intended target variables do not have to be encoded now, 
-        as the Scikit-learn algorithms used in this app will automatically use a label encoder,
-        but it can become difficult to interpret labels in these instances.
         """)
         # create list of categorical columns to select from
         cat_cols = df.select_dtypes(include=['object', 'category']).columns.tolist()
@@ -243,8 +246,6 @@ if data_source == "Upload CSV":
         else: # if the user has not selected any columns
             st.warning("No columns selected for encoding.")
 
-        # preview processed dataset
-        # st.dataframe(df.head())
         data_processed = True # mark data as ready to continue
     
     else: # df does not exist or is empty
