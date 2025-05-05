@@ -232,7 +232,7 @@ if data_source == "Upload CSV":
         st.markdown("""
         **Purpose:** These clustering algorithms require numerical inputs, 
         which inhibits them from interpreting categorical variables in their natural state.\n
-        **Action:** Convert categorical variables into numeric form using one-hot encoding. \n  
+        **Action:** If you wish to use categorical data as a feature, convert the variable into numeric form using one-hot encoding. \n  
         """)
         # create list of categorical columns to select from
         cat_cols = df.select_dtypes(include=['object', 'category']).columns.tolist()
@@ -261,36 +261,39 @@ if data_source == "Upload CSV":
     if data_processed: # checks if data has been successfully pre-processed in last step
         
         # step 1: choose a model type to train
-        st.subheader("Step 1: Choose a Classification Model")
+        st.subheader("Step 1: Choose a Clustering Model")
         # allow user to choose between model types
-        model_choice = st.selectbox('Select Model Type:', ['Logistic Regression', 'kNN'])
+        model_choice = st.selectbox('Select Model Type:', ['kMeans', 'hierarchical'])
 
-        # step 2: specify x and y columns
-        st.subheader("Step 2: Choose Features and Target Variable")
+        # step 2: specify column to use as label 
+        st.subheader("Step 2: Remove Labels")
         
         st.markdown("""
-        **Target Variable:** 
-        Please select a categorical variable. 
-        Note that if you chose a logistic regression model, the target variable must also be binary.
+        **Label:** Choose a column suitable to act as a label. This column will not be used in the clustering algorithm. \n
+        **Note:** While unsupervised methods do not use labels directly,
+        this choice can be used later to check the accuracy of the clusters produced. 
         """)
-        # allow user to select a y variable among the columns
-        label = st.selectbox("Select the target column (y):", df.columns)
+        # allow user to select a label among the columns
+        label = st.selectbox("Select a label to **exclude**:", df.columns)
         if label: # checks that a y variable has been chosen by user
             y = df[label] # creates variable y by sub setting column from df
             st.dataframe(y.head()) # preview the first few rows of the y variable
 
+        # step 3: specify columns to use as features
+        st.subheader("Step 3: Choose Features")
+        
         st.markdown("""
-        **Features:** Please select numeric or encoded categorical variables.
+        **Features:** Please select numeric or encoded categorical variables for the model to use during clustering. 
         """)
         # limit feature selection to viable data types
         numeric_columns = df.select_dtypes(include=['int64', 'float64', 'int32', 'float32', 'bool']).columns.tolist() # extracts numeric cols
         if label in numeric_columns:
-            numeric_columns.remove(label) # label cannot be chosen as feature
+            numeric_columns.remove(label) # ensures that label cannot be chosen as feature
             
-        # allow user to select x variables from the numeric columns
-        features = st.multiselect("Select the feature columns (X):", numeric_columns)
+        # allow user to select features from the numeric columns
+        features = st.multiselect("Select features to **include**:", numeric_columns)
         if features: # ensures feature columns have been selected by user
-            X = df[features] # create df X by sub setting the selected feature columns from the main df
+            X = df[features] # create df X by subsetting the selected feature columns from the main df
             st.dataframe(X.head()) # displays first few rows of X df
         else: # no feature variables have been selected
             st.warning("Please select at least one feature.")
@@ -330,7 +333,7 @@ else: # elif sample data set used (not custom CSV)
             df = df.dropna() # remove missing values
             df = pd.get_dummies(df, columns=['sex'], drop_first=True) # encode age column
             
-        st.write("After removing unwanted variables, handling missing values, and encoding categorical variables, the dataset looks like:")
+        st.write("After removing unwanted variables, handling missing values, and encoding necessary categorical variables, the dataset looks like:")
         st.dataframe(df.head()) # preview the dataset after processing
         
         data_processed = True # mark data as processed 
@@ -347,12 +350,12 @@ else: # elif sample data set used (not custom CSV)
     
     if data_processed: # checks that data has been successfully processed
         # step 1: choose a model type to train
-        st.subheader("Step 1: Choose a Classification Model")
+        st.subheader("Step 1: Choose a Clustering Model")
         # allow user to select a machine learning model
-        model_choice = st.selectbox('Select Model Type:', ['Logistic Regression', 'kNN'])
+        model_choice = st.selectbox('Select Model Type:', ['kMeans', 'Hierarchical'])
 
-        # step 2: specify x and y columns
-        st.subheader("Step 2: Specify Features and Target Variable")
+        # step 2: specify features and label
+        st.subheader("Step 2: Remove Label and Specify Features")
         
         if sample_data == 'penguins':
             features = ['bill_length_mm', 'bill_depth_mm', 'flipper_length_mm', 'body_mass_g']
@@ -360,8 +363,9 @@ else: # elif sample data set used (not custom CSV)
             y = df['sex_Male'] # create Y df by subsetting y col from original df
             
             # preview selected variables
-            st.write(f"**Target Variable:** {'sex_Male'}")
+            st.write(f"**Label:** {'sex_Male'}")
             st.write(f"**Feautres:** {features}")
+            st.warning("**Note:** The label column will *not* be used during the clustering algorithm itself, but it may be used later to check the accuracy of the clusters produced.")
             
         else: # sample_data == 'titanic'
             features = ['pclass', 'age', 'sibsp', 'parch', 'fare', 'sex_male']
@@ -369,8 +373,9 @@ else: # elif sample data set used (not custom CSV)
             y = df['survived'] # create Y df by subsetting y col from original df
             
             # preview selected variables
-            st.write(f"**Target Variable:** {'survived'}")
+            st.write(f"**Label:** {'survived'}")
             st.write(f"**Feautres:** {features}")
+            st.warning("**Note:** The label column will *not* be used during the clustering algorithm itself, but it may be used later to check the accuracy of the clusters produced.")
         
         if 'X' in locals() and 'y' in locals(): # ensures X and y have been selected
             data_ready = True # mark data as ready to continue
@@ -383,21 +388,15 @@ st.divider()
 # ----- ALL DATASETS ----- #
 
 # PART 3: TRAIN MODEL
-st.header("Part 3: Train a Classification Model")
+st.header("Part 3: Run a Clustering Model")
 
 if data_ready: # checks if data is ready from previous steps
     
-    # step 1: split into training and test data
-    st.subheader("Step 1: Train-Test Split")
-    # use train_test_split to divide data into 80% training data and 20% test data
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
-    st.success("The data has been split into 80% training data and 20% test data.")
-    
-    # step 2: scale the data before training
-    st.subheader("Step 2 (Optional): Scaling")
+    # step 1: scale the data before training
+    st.subheader("Step 1: Scaling")
     st.markdown("""
     **Purpose:** For models sensitive to the scale of features, scaling can substantially improve performance. \n
-    **Action:** Standardize the features (mean = 0, standard deviation = 1) and apply to train and test data. \n  
+    **Action:** Standardize the features (mean = 0, standard deviation = 1) and apply to the data \n  
     """)
     # allow user to select whether to scale the data or not
     scale_choice = st.radio("Would you like to perform scaling?", ("Yes", "No"))
