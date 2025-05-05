@@ -2,7 +2,10 @@
 
 
 ## Project Overview:  
+In the [MLStreamlitApp](https://github.com/llatimer031/Latimer-Data-Science-Portfolio/edit/main/MLStreamlitApp), we explored supervised learning techniques on a variety of datasets. However, not all data has a clear target variable, or in other words, not all data is 'labeled'. Consequently, this app provides an interactive walkthrough to fitting and evaluating *unsupervised* learning models, including:
 
+- **kMeans Clustering:** An algorithm which groups unlabeled data into 'k' clusters by finding the optimal centroid for each grouping. 
+- **(Agglomerative) Hierarchical Clustering:** An algorithm in which each observation is treated as its own cluster and then merged with the nearest cluster until told to stop.
 
 ## Usage:
 To launch via Streamlit cloud:
