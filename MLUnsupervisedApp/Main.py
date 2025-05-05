@@ -14,7 +14,11 @@ from sklearn.metrics import accuracy_score, confusion_matrix
 from sklearn.preprocessing import StandardScaler
 
 # import unsupervised learning packages
-
+from sklearn.cluster import KMeans
+from sklearn.cluster import AgglomerativeClustering
+from scipy.cluster.hierarchy import linkage, dendrogram
+from sklearn.decomposition import PCA
+from sklearn.metrics import silhouette_score
 
 # --------------- TITLE --------------- #
 
@@ -34,46 +38,93 @@ st.header("An interactive walkthrough data processing, model selection, and para
 # --------------- FUNCTIONS --------------- #
 
 # run a k means clustering model
-def kCluster(X_train, y_train):   
-    model = LogisticRegression()
-    model.fit(X_train, y_train)
-    return model
+def kCluster(k, X):   
+    kmeans = KMeans(n_clusters=k, random_state=42)
+    clusters = kmeans.fit_predict(X)
+    return kmeans, clusters
 
 # run a hierarchical clustering model
-def HierCluster(X_train, y_train):
-    model = KNeighborsClassifier(n_neighbors=k)
-    model.fit(X_train, y_train)
+def HierCluster(X):
+    Z = linkage(X_train, method="ward")
     return model
 
-# calculate accuracy and display a confusion matrix 
-def ConfMatrix(model, X_test, y_test):  
-    # predict the y variables from the test set
-    y_pred = model.predict(X_test)
+def graph_PCA(X, cluster_labels):
+    pca = PCA(n_components=2)
+    X_pca = pca.fit_transform(X)
     
-    # calculate how many of the predicted y variables were accurate 
-    accuracy = accuracy_score(y_test, y_pred)
-    st.write(f"**Accuracy:** {accuracy:.2f}")
-    # display a different color message according to the accuracy of the model
-    if accuracy >= 0.75:
-        st.success(f"{accuracy * 100:.0f}% of the test data was correctly classified.")
-    elif accuracy >= 0.50:
-        st.warning(f"{accuracy * 100:.0f}% of the test data was correctly classified.")
-    else: # accuracy is less than 50%
-        st.error(f"{accuracy * 100:.0f}% of the test data was correctly classified.")
+    plt.figure(figsize=(10, 7))
+    scatter = plt.scatter(X_pca[:, 0], X_pca[:, 1], c=cluster_labels, cmap='viridis', s=60, edgecolor='k', alpha=0.7)
+    plt.xlabel('Principal Component 1')
+    plt.ylabel('Principal Component 2')
+    plt.title('Agglomerative Clustering on Country Data (via PCA)')
+    plt.legend(*scatter.legend_elements(), title="Clusters")
+    plt.grid(True)
+    plt.show()
+    
+def elbow_plot(k_range, X):
+    wcss = []
+    
+    for k in k_range:
+        km = KMeans(n_clusters=k, random_state=42)
+        km.fit(X)
+        wcss.append(km.inertia_)  # inertia: sum of squared distances within clusters
         
-    # create the confusion matrix
-    cm = confusion_matrix(y_test, y_pred)
-
-    # add the matrix to a figure and label axis
-    fig, ax = plt.subplots()
-    sns.heatmap(cm, annot=True, fmt='d', cmap='Blues', ax=ax)
-    ax.set_title('Confusion Matrix')
-    ax.set_xlabel('Predicted')
-    ax.set_ylabel('Actual')
-
-    # display figure in streamlit app
-    st.pyplot(fig)
+    # plot the result
+    plt.figure(figsize=(12, 5))
+    plt.plot(k_range, wcss, marker='o')
+    plt.xlabel('Number of clusters (k)')
+    plt.ylabel('Within-Cluster Sum of Squares (WCSS)')
+    plt.title('Elbow Method for Optimal k')
+    plt.grid(True)
+    plt.show()
     
+def sil_plot_kmeans(k_range, X):
+    silhouette_scores = [] 
+    
+    for k in k_range:
+    km = KMeans(n_clusters=k, random_state=42)
+    km.fit(X_std)
+    labels = km.labels_
+    silhouette_scores.append(silhouette_score(X, labels))
+    
+    # plot the result
+    plt.subplot(1, 2, 2)
+    plt.plot(k_range, silhouette_scores, marker='o', color='green')
+    plt.xlabel('Number of clusters (k)')
+    plt.ylabel('Silhouette Score')
+    plt.title('Silhouette Score for Optimal k')
+    plt.grid(True)
+    plt.show()  
+    
+    best_k = k_range[np.argmax(silhouette_scores)]
+    return best_k
+        
+def sil_plot_hier(k_range, X):
+    silhouette_scores = [] 
+    
+    for k in k_range:
+        # Fit hierarchical clustering with Ward linkage (same as dendrogram)
+        labels = AgglomerativeClustering(n_clusters=k, linkage="ward").fit_predict(X_scaled)
+
+        # Silhouette: +1 = dense & well‑separated, 0 = overlapping, −1 = wrong clustering
+        score = silhouette_score(X_scaled, labels)
+        silhouette_scores.append(score)
+
+    # Plot the curve
+    plt.figure(figsize=(7,4))
+    plt.plot(list(k_range), silhouette_scores, marker="o")
+    plt.xticks(list(k_range))
+    plt.xlabel("Number of Clusters (k)")
+    plt.ylabel("Average Silhouette Score")
+    plt.title("Silhouette Analysis for Agglomerative (Ward) Clustering")
+    plt.grid(True, alpha=0.3)
+    plt.show()
+    
+    best_k = k_range[np.argmax(silhouette_scores)]
+    return best_k
+
+# Optional: print best k
+best_k = k_range[np.argmax(sil_scores)]
 # --------------- SIDEBAR --------------- #
 
 # create sidebar to customize data and model options
