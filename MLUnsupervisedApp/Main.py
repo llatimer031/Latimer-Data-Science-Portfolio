@@ -468,7 +468,7 @@ if data_ready: # checks if data is ready from previous steps
             
     # step 4: visualize the results using PCA
         
-    st.subheader("Step 4: Using Principle Component Analysis (PCA) to Visualize Clusters")
+    st.subheader("Step 4: Visualize Clusters using Principle Component Analysis (PCA)")
     st.markdown("""
         **Purpose:** When data is high-dimensional, it can become difficult to both analyze and interpret.
         This event is called the *curse of dimensionality,* a problem in which PCA aims to solve.\n
@@ -486,9 +486,11 @@ if data_ready: # checks if data is ready from previous steps
                 """)
 
     # step 5: analyze model performance
-    
     st.subheader("Step 5: Analyze Model Performance")
     
+    # import accuracy score to calculate the percentage of data points correctly predicted
+    accuracy = accuracy_score(y, clusters)
+    st.write(f"Accuracy Score: {accuracy * 100:.2f}%")
     
     st.divider()
 
@@ -497,158 +499,58 @@ if data_ready: # checks if data is ready from previous steps
     
     st.write("**Overview:** Fine tuning a model helps to find optimal hyperparameters to maximize accuracy and other performance indicators.")
     
-    if model_choice == 'Logistic Regression':
+    if model_choice == 'kMeans':
         # explain hyperparameter options
         st.markdown("""
         **Options:**
-        - **penalty:** Penalties are a form of regularization, in which the model is simplified to avoid overfitting. 
-            - `'l2'` (default): Ridge regression shrinks the weights of all coefficients, but does not eliminate any.
-            - `'l1'`: Lasso regression limits the weight of some coefficients to 0, reducing the size of the model.
-            - `None`: No penalty is added.
-        - **max_iter:** Maximum number of iterations taken for the solver to converge (default = 100).
+        - **n_clusters:** 
+        - **max_iter:**
         """)
         
         st.subheader("Step 1: Choose a Hyperparameter")
-        param = st.selectbox("Select a parameter to explore:", ("penalty", "max_iter"))
+        # allow user to select a parameter from the given options
+        param = st.selectbox("Select a parameter to explore:", ("n_clusters", "max_iter"))
         
-        if param == "penalty": # penalty is selected
-            penalty = st.selectbox("Choose a penalty to apply:", ("l2", "l1", "None"))
+        if param == "k": # penalty is selected
+            # explain elbow plot
+            # plot elbow plot
             
-            # intialize model according to selected penalty
-            if penalty == "l2":
-                log_reg_tuned = LogisticRegression(penalty=penalty) # create model with l2 penalty
-            elif penalty == "l1":
-                log_reg_tuned = LogisticRegression(penalty='l1', solver='liblinear') # specify solver that supports l1
-            else:
-                log_reg_tuned = LogisticRegression(penalty=None) # create model with no penalty
-                
-            log_reg_tuned.fit(X_train_1, y_train) # train model on data
+            # explain silhouette plot
+            # plot silhouette plot
+            pass
             
         else: # max_iter is selected
             max_iter = st.number_input("Input a number of iterations to run:", 1, 10000)
-            log_reg_tuned = LogisticRegression(max_iter=max_iter) # create model with specified iterations
-            log_reg_tuned.fit(X_train_1, y_train) # train model on data
+            kmeans_tuned = KMeans(n_clusters=k, max_iter=max_iter, random_state=42) # create model with specified iterations
+            clusters_tuned = kmeans_tuned.fit_predict(X_std) # fit model to data to create clusters
         
         st.subheader("Step 2: Analyze Performance")
         
-        # extract coefficients and intercept
-        coef1, coef2 = st.columns(2) # create columns to put tables side-by-side
         
-        # set default and tuned parameter choices for clarity
-        if param == "penalty":
-            default = 'l2'
-            tuned_choice = penalty
-        else: 
-            default = '100 iterations'
-            tuned_choice = f'{max_iter} iterations'
         
-        # input coefficients into columns
-        with coef1:
-            st.write(f"**Model Coefficients before Tuning ({default}):**")
-            coef = pd.Series(log_reg.coef_[0], index=features)
-            intercept = log_reg.intercept_[0]
-            st.write(coef) # display coefficients
-            st.write("\nIntercept:", intercept) # display intercept
-        with coef2:
-            st.write(f"**Model Coefficients after Tuning ({tuned_choice}):**")
-            coef2 = pd.Series(log_reg_tuned.coef_[0], index=features)
-            intercept2 = log_reg_tuned.intercept_[0]
-            st.write(coef2) # display coefficients
-            st.write("\nIntercept:", intercept2) # display intercept
-        
-        # thought questions about accuracy / conf matrix
-        if param == "penalty":
-            st.markdown("""
-                > 💭 **Thought Question:** 
-                > How do the model coefficients change when penalties are added? 
-                > Does the 'l1' penalty eliminate any coefficients completely? 
-                """)
-        
-        st.markdown("#### Test Data Results")   
-        ConfMatrix(log_reg_tuned, X_test_1, y_test) # create conf matrix for tuned model
-        
-        # thought questions about accuracy / conf matrix
-        if param == "max_iter":
-            st.markdown("""
-                > 💭 **Thought Question:** 
-                > Is there a threshold in which increasing the number of iterations no longer changes the outcomes? \n
-                > 💡 **Analysis:** 
-                > When max_iter is high enough, the model will converge before the manual stopping point is reached. 
-                > If model accuracy is still increasing as you increase max_iter, then the model is likely being stopped before full convergence.
-                """)
-            
-        else: # add question about penalty
-            st.markdown("""
-                > 💭 **Thought Question:** 
-                > Does penalizing the coefficients increase or decrease model accuracy? \n
-                > 💡 **Analysis:**
-                > If adding penalties increase the model performance, the non-penalized model may be overfit. 
-                > If the addition of penalties does not increase model performance, then overfitting may not be a major concern for the model. 
-                """)
-        
-    else: # model_choice == 'kNN'
+    else: # model_choice == 'hierarchical'
         # explain hyperparameter options
         st.markdown("""
         **Options:**
-        - **n_neighbors:** Specifies 'k', or the number of neighbors to compare each test point to (default = 5)).
-        - **metric:** Specifies the metric used to calculate distance between data points. 
-            - `minkowski` (default): standard euchlidean (straight-line) distance
-            - `manhattan`: grid-like distance between coordinates
-            - `chebyshev`: maximum absolute difference
+        - **linkage:**
+        - **n_clusters:**
         """)
         
         st.subheader("Step 1: Choose a Hyperparameter")
-        param = st.selectbox("Select a parameter to explore:", ("n_neighbors", "metric"))
+        param = st.selectbox("Select a parameter to explore:", ("linkage", "n_clusters"))
         
-        if param == "n_neighbors":
-            k = st.slider("Select 'k' value to use:", 1, 20)
-            knn_tuned = kNNClassifier(k, X_train_1, y_train) # create model with selected k
-            
-            # add option to find best k
-            if st.toggle("Not sure what 'k' to use? Click here to find best 'k'"): # create button to plot best k
-                k_values = range(1, 21, 1)
-                accuracies = []
-
-                # loop through different values of k, train a KNN model on data, and record the accuracy for each
-                for k in k_values:
-                    knn_temp = KNeighborsClassifier(n_neighbors=k)
-                    knn_temp.fit(X_train_1, y_train)
-                    y_temp_pred = knn_temp.predict(X_test_1)
-                    accuracies.append(accuracy_score(y_test, y_temp_pred))
-
-                # plot accuracy vs. number of neighbors (k) for the data
-                fig = plt.figure(figsize=(8, 5))
-                plt.plot(k_values, accuracies, marker='o')
-                plt.title('Accuracy vs. Number of Neighbors (k)')
-                plt.xlabel('Number of Neighbors (k)')
-                plt.ylabel('Accuracy')
-                plt.xticks(k_values)
-                st.pyplot(fig)
+        if param == "n_clusters":
+            pass
+            # explain the silhouette plot
+            # plot silhouette scores
                 
-        else: # if param == "metric"
-            chosen_metric = st.selectbox("Select a metric:", ('minkowski', 'manhattan', 'chebyshev'))
-            knn_tuned = KNeighborsClassifier(metric=chosen_metric) # create model with the selected metric
-            knn_tuned.fit(X_train_1, y_train) # train new model on data
+        else: # if param == "linkage"
+            linkage_type = st.selectbox("Select a linkage type", ('ward', 'option2'))
+            # create model with the selected linkage
+            # fit model to data to create clusters
             
                 
         st.subheader("Step 2: Analyze Performance")
-        ConfMatrix(knn_tuned, X_test_1, y_test) # create conf matrix for tuned model
-        
-        # thought questions / analysis
-        if param == "metric":
-            st.markdown("""
-                > 💭 **Thought Question:** 
-                > Compare the outcomes for different metrics using both scaled and unscaled data.
-                > Why might these metrics have a smaller affect on scaled data? \n
-                > 💡 **Analysis:** Scaling the data sets equal variances to each feature, 
-                > so no single feature will outweigh the others in distance calculations.
-                """)
-        else: # add question about k
-            st.markdown("""
-                > 💭 **Thought Question:** Why is it important to choose an optimal 'k'? \n
-                > 💡 **Analysis:**  Too small of a k may be sensitive to noise and lead to overfitting, 
-                > whereas too large of a k may overgeneralize and cause underfitting.
-                """)
         
 else:
     # warning displays if data has not been split
