@@ -1,3 +1,5 @@
+# Principles of Tidy Data
+
 ## Project Overview: 
 **Goal:** Utilize tidy data principles during the data cleaning processes to produce data sets that are readily able to be visualized and manipulated. 
 
