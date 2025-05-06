@@ -7,6 +7,7 @@ import streamlit as st
 import pandas as pd
 import seaborn as sns
 import matplotlib.pyplot as plt
+import numpy as np
 
 # import machine learning packages
 from sklearn.model_selection import train_test_split
@@ -38,20 +39,32 @@ st.header("An interactive walkthrough data processing, model selection, and para
 # --------------- FUNCTIONS --------------- #
 
 # run a k means clustering model
-def graph_PCA(X, cluster_labels):
+def graph_PCA(X_std, clusters):
     pca = PCA(n_components=2)
-    X_pca = pca.fit_transform(X)
-    
-    plt.figure(figsize=(8, 6))
-    plt.scatter(X_pca[clusters == 0, 0], X_pca[clusters == 0, 1],
-            c='navy', alpha=0.7, edgecolor='k', s=60, label='Cluster 0')
-    plt.scatter(X_pca[clusters == 1, 0], X_pca[clusters == 1, 1],
-            c='darkorange', alpha=0.7, edgecolor='k', s=60, label='Cluster 1')
-    plt.xlabel('Principal Component 1')
-    plt.ylabel('Principal Component 2')
-    plt.legend(loc='best')
-    plt.grid(True)
-    plt.show()
+    X_pca = pca.fit_transform(X_std)
+
+    unique_clusters = np.unique(clusters)
+    colors = plt.cm.get_cmap('tab10', len(unique_clusters))  # Up to 10 distinct colors
+
+    fig, ax = plt.subplots(figsize=(8, 6))
+
+    for i, cluster_label in enumerate(unique_clusters):
+        ax.scatter(
+            X_pca[clusters == cluster_label, 0],
+            X_pca[clusters == cluster_label, 1],
+            color=colors(i),
+            alpha=0.7,
+            edgecolor='k',
+            s=60,
+            label=f'Cluster {cluster_label}'
+        )
+
+    ax.set_xlabel('Principal Component 1')
+    ax.set_ylabel('Principal Component 2')
+    ax.legend(loc='best')
+    ax.grid(True)
+
+    st.pyplot(fig)
     
 def kCluster(k, X):   
     kmeans = KMeans(n_clusters=k, random_state=42)
@@ -298,7 +311,6 @@ if data_source == "Upload CSV":
         else: # no feature variables have been selected
             st.warning("Please select at least one feature.")
         
-        
         if 'X' in locals() and 'y' in locals(): # ensures X and y variables have been selected
             data_ready = True # mark data as ready to continue
 
@@ -365,7 +377,7 @@ else: # elif sample data set used (not custom CSV)
             # preview selected variables
             st.write(f"**Label:** {'sex_Male'}")
             st.write(f"**Feautres:** {features}")
-            st.warning("**Note:** The label column will *not* be used during the clustering algorithm itself, but it may be used later to check the accuracy of the clusters produced.")
+            st.write("**Note:** The label column will *not* be used during the clustering algorithm itself, but it may be used later to check the accuracy of the clusters produced.")
             
         else: # sample_data == 'titanic'
             features = ['pclass', 'age', 'sibsp', 'parch', 'fare', 'sex_male']
@@ -375,7 +387,7 @@ else: # elif sample data set used (not custom CSV)
             # preview selected variables
             st.write(f"**Label:** {'survived'}")
             st.write(f"**Feautres:** {features}")
-            st.warning("**Note:** The label column will *not* be used during the clustering algorithm itself, but it may be used later to check the accuracy of the clusters produced.")
+            st.write("**Note:** The label column will *not* be used during the clustering algorithm itself, but it may be used later to check the accuracy of the clusters produced.")
         
         if 'X' in locals() and 'y' in locals(): # ensures X and y have been selected
             data_ready = True # mark data as ready to continue
@@ -388,96 +400,66 @@ st.divider()
 # ----- ALL DATASETS ----- #
 
 # PART 3: TRAIN MODEL
-st.header("Part 3: Run a Clustering Model")
+st.header("Part 3: Fit a Clustering Model")
 
 if data_ready: # checks if data is ready from previous steps
     
     # step 1: scale the data before training
     st.subheader("Step 1: Scaling")
     st.markdown("""
-    **Purpose:** For models sensitive to the scale of features, scaling can substantially improve performance. \n
+    **Purpose:** Clustering algorithms rely on distance metrics, which are sensitive to the scale of data. \n
     **Action:** Standardize the features (mean = 0, standard deviation = 1) and apply to the data \n  
     """)
-    # allow user to select whether to scale the data or not
-    scale_choice = st.radio("Would you like to perform scaling?", ("Yes", "No"))
     
-    if scale_choice == 'Yes':
-        scaler = StandardScaler() 
-        # fit the scaler on the training data and transform both training and test data
-        X_train_1 = scaler.fit_transform(X_train)
-        X_test_1 = scaler.transform(X_test)
-        st.success("The data has been scaled.")
-    else: # scale_choice = no
-        # keep X_train and X_test the same
-        X_train_1 = X_train 
-        X_test_1 = X_test
-        st.warning("Continue without scaling.")
+    scaler = StandardScaler()
+    X_std = scaler.fit_transform(X)
+    
+    if X_std is not None:
+        st.success("The data has been successfully scaled.")
         
-    # step 3: train and test model
-    st.subheader("Step 3: Train and Test the Selected Model")
+    # step 2: compute clusters
+    st.subheader("Step 2: Compute Clusters")
     
-    # run function corresponding to chosen model
-    if model_choice == 'Logistic Regression':
+    # compute clusters corresponding to chosen model
+    if model_choice == 'kMeans':
         st.markdown("""
-        **Current Model Selection:** Logistic Regression \n
-        **Model Information:** Logistic repression is a type of supervised learning 
-        used for binary classification by calculating the probability a data point belongs to a given class. \n
-        **Coefficients and Intercept:** \n
-        - Coefficients:
-            - Positive: Feature increases the log-odds (probability) of the target variable.
-            - Negative: Feature decreases the log-odds (probability) of the target variable.
-        - Intercept: Baseline for the target variable given default feature settings. 
+        **Current Model Selection:** kMeans Clustering \n
+        **Model Information:**  \n
         """)
-    
-        log_reg = LogRegression(X_train_1, y_train) 
         
-        # Extract coefficients and intercept
-        coef = pd.Series(log_reg.coef_[0], index=features)
-        intercept = log_reg.intercept_[0]
-        st.write(coef) # display coefficients
-        st.write("\nIntercept:", intercept) # display intercept
+        # initialize by choosing a k to start
         
-        # step 4: analyze performance using accuracy and conf matrix
-        st.subheader("Step 4: Analyze Performance")
-        ConfMatrix(log_reg, X_test_1, y_test)
+        st.write("**i) Initialization:** *k* initial centroids will randomly be chosen.")
+        # allow user to select a value of k to use
+        k = st.slider("Please select a value for *k*:", 1, 10)
         
-    else:
+        # run the kMeans algorithm to fit the model
+        
+        st.markdown("""
+        **ii) Fitting the Model:**
+        - Each point will be assigned to the nearest centroid, based on the distance metric  
+        - The centroids will be recalculated using the mean of each cluster  
+        - Repeat until stopping criteria is met
+        """)
+
+        kmeans = KMeans(n_clusters=k, random_state=42)
+        clusters = kmeans.fit_predict(X_std)
+        
+        if clusters is not None:
+            st.success("kMeans model has been succesfully fit to the data.")
+            st.write(f"Preview of cluster labels: {clusters[:10]}")
+        
+        # visualize the results using PCA
+        
+        st.write("**iii) Visualize the Results:** To visualize the separation of cluster, we must reduce the dataset to two dimensions using PCA.")
+        graph_PCA(X_std, clusters)
+        
+    else: # model selection is hierarchical
         st.markdown(f"""
-        **Current Model Selection:** kNN (default k=5) \n
-        **Model Information:** The 'k' Nearest Neighbors algorithm is a supervised learning method used for classification
-        by predicting the class of a data point according to its similarities (or distance) to the other data points. 
+        **Current Model Selection:** Hierarchical Clustering \n
+        **Model Information:** 
         """)
         
-        knn = kNNClassifier(5, X_train_1, y_train)
-        
-        # step 4: analyze performance using accuracy and conf matrix
-        st.subheader("Step 4: Analyze Performance")
-        ConfMatrix(knn, X_test_1, y_test)
-    
-    
-    if st.toggle("Need help interpreting the confusion matrix? Click for explanation."):
-        st.markdown("""
-                    **Top left:** True negatives
-                    - Truly negative outcomes that were predicted as negative.
-                    - Example (penguins): is not a male (0), predicted as not a male (0).
-                    
-                    **Top right:** False positives
-                    - Truly negative outcomes that were predicted as positive.
-                    - Example (penguins): is not a male (0), predicted as a male (1).
-                    
-                    **Bottom left:** False negatives
-                    - Truly positive outcomes that were predicted as negative.
-                    - Example (penguins): is a male (1), predicted as not a male (0).
-                    
-                    **Bottom right:** True positives
-                    - Truly positive outcomes that were predicted as positive.
-                    - Example (penguins): is a male (1), predicted as a male (1).
-                    """)
-        
-    st.markdown("""
-    > 💭 **Thought Question:** 
-    > Does scaling the data affect the model performance?
-    """)
 
     st.divider()
 
