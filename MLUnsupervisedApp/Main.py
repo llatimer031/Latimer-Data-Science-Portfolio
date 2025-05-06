@@ -66,23 +66,6 @@ def graph_PCA(X_std, clusters):
 
     st.pyplot(fig)
     
-def kCluster(k, X):   
-    kmeans = KMeans(n_clusters=k, random_state=42)
-    clusters = kmeans.fit_predict(X)
-    return kmeans, clusters
-
-# run a hierarchical clustering model
-def hier_cluster_graph(X, y, method):
-    Z = linkage(X, method=method)
-    
-    labels = y.to_list()
-
-    plt.figure(figsize=(20, 7))
-    dendrogram(Z, labels = labels)
-    plt.title("Hierarchical Clustering Dendrogram")
-    plt.ylabel("Distance")
-    plt.show()
-    
 def elbow_plot(k_range, X):
     wcss = []
     
@@ -412,7 +395,7 @@ if data_ready: # checks if data is ready from previous steps
     if X_std is not None:
         st.success("The data has been successfully scaled.")
         
-    # step 2: compute clusters
+    # step 3: compute clusters
     st.subheader("Step 3: Compute Clusters")
     
     # compute clusters corresponding to chosen model
@@ -437,23 +420,76 @@ if data_ready: # checks if data is ready from previous steps
         - Repeat until stopping criteria is met
         """)
 
-        kmeans = KMeans(n_clusters=k, random_state=42)
-        clusters = kmeans.fit_predict(X_std)
+        kmeans = KMeans(n_clusters=k, random_state=42) # run kMeans algorithm
+        clusters = kmeans.fit_predict(X_std) # assigns predictions to clusters variable
         
+        # displays success message if model has been run
         if clusters is not None:
-            st.success("kMeans model has been succesfully fit to the data.")
+            st.success("The kMeans model has been succesfully fit to the data.")
         
     else: # model selection is hierarchical
         st.markdown(f"""
         **Current Model Selection:** Hierarchical Clustering \n
         **Model Information:** 
         """)
-    
-    # visualize the results using PCA
         
-    st.subheader("Step 4: Visualize the Results using PCA")
-    graph_PCA(X_std, clusters)
+        # build a dendrogram
+        st.write("**i) Building a Hierarchical Tree:** Merge clusters until complete.")
+        
+        Z = linkage(X_std) # will create linkage matrix with default linkage method "ward"
 
+        labels = y.to_list() # y is the label selected earlier
+
+        # plot dendrogram in streamlit
+        fig, ax = plt.subplots(figsize=(20, 7))
+        dendrogram(Z, truncate_mode="lastp", labels=labels, ax=ax) # creates dendrogram with limited examples shown
+        ax.set_title("Hierarchical Clustering Dendrogram")
+        ax.set_ylabel("Distance")
+
+        st.pyplot(fig)
+        
+        # assign k number of clusters using the dendrogram
+        st.write("**ii) Choose the Number of Clusters:** Inspect the dendrogram to choose an appropriate number of *k* clusters.")
+        # allow user to select k based on inspect
+        k = st.slider("Please select a value for *k*:", 1, 10)
+        
+        # run the agglomerative clustering algorithm to fit the model
+        st.markdown("""
+        **ii) Fitting the Model:**
+        Agglomerative clustering with the same linkage method will produce integer labels for the dataframe.
+        """)
+        
+        agg = AgglomerativeClustering(n_clusters=k) # default linkage is ward
+        clusters = agg.fit_predict(X_std) # save the predictions to the cluster variable
+        
+        # display success message if model has been run
+        if clusters is not None:
+            st.success("The hierarchical model has been succesfully fit to the data.")
+            
+    # step 4: visualize the results using PCA
+        
+    st.subheader("Step 4: Using Principle Component Analysis (PCA) to Visualize Clusters")
+    st.markdown("""
+        **Purpose:** When data is high-dimensional, it can become difficult to both analyze and interpret.
+        This event is called the *curse of dimensionality,* a problem in which PCA aims to solve.\n
+        **Action:** Combine features into principle components that capture maximum variance in the data.
+        """)
+    graph_PCA(X_std, clusters)
+    
+    if st.toggle("Need help interpreting these principle components? Click here for explanation."):
+        st.write("The first principle component...")
+        # COMPLETE ANALYSIS
+        
+    st.markdown("""
+                > 💭 **Thought Question:** 
+                Are the clusters created by this unsupervised learning algorithm well separated?
+                """)
+
+    # step 5: analyze model performance
+    
+    st.subheader("Step 5: Analyze Model Performance")
+    
+    
     st.divider()
 
     # PART 4: HYPERPARAMETER TUNING
