@@ -5,7 +5,6 @@ import streamlit as st
 
 # import data analysis and visualization packages
 import pandas as pd
-import seaborn as sns
 import matplotlib.pyplot as plt
 import numpy as np
 
@@ -13,6 +12,8 @@ import numpy as np
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score, confusion_matrix
 from sklearn.preprocessing import StandardScaler
+from sklearn.datasets import load_breast_cancer
+from sklearn.datasets import load_wine
 
 # import unsupervised learning packages
 from sklearn.cluster import KMeans
@@ -156,14 +157,23 @@ if data_source == "Upload CSV":
 # option (b) choose from sample datasets
 else:
     # allow users to select which sample dataset they want to use
-    sample_data = st.sidebar.selectbox("Choose a sample dataset:", ['penguins', 'titanic'])
+    sample_data = st.sidebar.selectbox("Choose a sample dataset:", ['wine', 'breast cancer'])
     
-    if sample_data == 'penguins':
-        # load Seaborn's penguins dataset and assign to python dataframe
-        df = sns.load_dataset("penguins") 
-    elif sample_data == 'titanic':
-        # load Seaborn's titanic dataset and assign to python dataframe
-        df = sns.load_dataset("titanic")
+    if sample_data == 'wine':
+        # load the wine dataset from sklearn
+        data = load_wine()
+        df = pd.DataFrame(data.data, columns=data.feature_names)  
+        df['target'] = data.target  # Target variable (cultivar class)
+        feature_names = data.feature_names
+        target_names = data.target_names
+        
+    elif sample_data == 'breast cancer':
+        # load the breast cancer dataset from sklearn
+        data = load_breast_cancer()
+        df = pd.DataFrame(data.data, columns=data.feature_names)  
+        df['target'] = data.target  # Target variable (diagnosis)
+        feature_names = data.feature_names
+        target_names = data.target_names
 
 # runs if data is in the df, whether it be from a CSV or sample data
 if df is not None:
@@ -311,20 +321,13 @@ else: # elif sample data set used (not custom CSV)
         st.write("Below is a preview of your chosen dataset:")
         st.dataframe(df.head())
 
-        if sample_data == 'penguins':
-            selected_cols = ['sex', 'bill_length_mm', 'bill_depth_mm', 'flipper_length_mm', 'body_mass_g']
-            df = df[selected_cols] # subset the data by the selected columns
-            df = df.dropna() # remove missing values
-            df = pd.get_dummies(df, columns=['sex'], drop_first=True) # encode sex column
-            
-        else: # sample_data == 'titanic'
-            selected_cols = ['survived', 'pclass', 'age', 'sibsp', 'parch', 'fare', 'sex']
-            df = df[selected_cols] # subset the data by selected columns
-            df = df.dropna() # remove missing values
-            df = pd.get_dummies(df, columns=['sex'], drop_first=True) # encode age column
-            
-        st.write("After removing unwanted variables, handling missing values, and encoding necessary categorical variables, the dataset looks like:")
-        st.dataframe(df.head()) # preview the dataset after processing
+        st.markdown("""
+        The selected dataset is already pre-processed:  
+        - The data does not contain missing values.  
+        - All features are numeric.
+        """)
+        
+        st.success("Data is ready to move on to the next step.")
         
         data_processed = True # mark data as processed 
         
@@ -341,28 +344,19 @@ else: # elif sample data set used (not custom CSV)
     if data_processed: # checks that data has been successfully processed
         
         # step 1: specify features and label
-        st.subheader("Step 1: Remove Label and Specify Features")
+        st.subheader("Step 1: Specify Label and Features")
         
-        if sample_data == 'penguins':
-            features = ['bill_length_mm', 'bill_depth_mm', 'flipper_length_mm', 'body_mass_g']
-            X = df[features] # create X df by subsetting feature columns from original df
-            y = df['sex_Male'] # create Y df by subsetting y col from original df
+        X = df.drop(columns=['target'])  # all features except the label
+        y = df['target']  # target column
+
+        if sample_data == 'wine':
+            st.write(f"**Label:** Cultivar Class")
+        else: # if sample_data == 'breast cancer'
+            st.write(f"**Label:** Diagnosis")
             
-            # preview selected variables
-            st.write(f"**Label:** {'sex_Male'}")
-            st.write(f"**Feautres:** {features}")
-            st.write("**Note:** The label column will *not* be used during the clustering algorithm itself, but it may be used later to check the accuracy of the clusters produced.")
+        st.write(f"**Features:** {list(X.columns)}")
+        st.write("**Note:** The label column will *not* be used during the clustering algorithm itself, but it may be used later to check the accuracy of the clusters produced.")
             
-        else: # sample_data == 'titanic'
-            features = ['pclass', 'age', 'sibsp', 'parch', 'fare', 'sex_male']
-            X = df[features] # create X df by subsetting feature columns from original df
-            y = df['survived'] # create Y df by subsetting y col from original df
-            
-            # preview selected variables
-            st.write(f"**Label:** {'survived'}")
-            st.write(f"**Feautres:** {features}")
-            st.write("**Note:** The label column will *not* be used during the clustering algorithm itself, but it may be used later to check the accuracy of the clusters produced.")
-        
         if 'X' in locals() and 'y' in locals(): # ensures X and y have been selected
             data_ready = True # mark data as ready to continue
 
@@ -471,7 +465,8 @@ if data_ready: # checks if data is ready from previous steps
     st.subheader("Step 4: Visualize Clusters using Principle Component Analysis (PCA)")
     st.markdown("""
         **Purpose:** When data is high-dimensional, it can become difficult to both analyze and interpret.
-        This event is called the *curse of dimensionality,* a problem in which PCA aims to solve.\n
+        This event is called the *curse of dimensionality,* a problem in which PCA aims to solve
+        by reducing the data to a specified number of dimensions.\n
         **Action:** Combine features into principle components that capture maximum variance in the data.
         """)
     graph_PCA(X_std, clusters)
