@@ -1,5 +1,6 @@
 ## Project Overview: 
 **Goal:** Utilize tidy data principles during the data cleaning processes to produce data sets that are readily able to be visualized and manipulated. 
+
 **Purpose:** Much of the data analysis process is spent in the cleaning stages, as it neccessary to ensure that the data can be further tested and analyzed. Thus, it is important that cleaning techniques are done as effectively and efficiently as possible to make for smoother analysis down the road. Tidy data approaches, like the ones explored in this project, ensure that this process is completed. 
 
 ## Usage:
@@ -21,14 +22,14 @@
 - Explains violations to TidyData principles.
 - Explores solutions, included `pd.melt()` and `.str.split()` functions.
 
-**Visualizations:** Produces the graphs found in the [Visual Examples](#Visual Examples) section. 
+**Visualizations:** Produces the graphs found in the [Visual Examples](##visual-examples) section. 
 
 **Pivot Tables:** Demonstrates how the data can be aggregated by different indexes to show summary statistics for a specified value. 
 
 ## References: 
-**Data:** [TidyTuesday Federal Research and Discover Repository](https://github.com/rfordatascience/tidytuesday/tree/main/data/2019/2019-02-12), [Modified Data](https://github.com/llatimer031/Latimer-Data-Science-Portfolio/blob/main/TidyData-Project/data/fed_rd_year%26gdp.csv)
+**Data:** [TidyTuesday Federal Research and Discovery Repository](https://github.com/rfordatascience/tidytuesday/tree/main/data/2019/2019-02-12), [Modified Data](https://github.com/llatimer031/Latimer-Data-Science-Portfolio/blob/main/TidyData-Project/data/fed_rd_year%26gdp.csv)
 
-**Tidy Data:** [Outline of Principle](https://vita.had.co.nz/papers/tidy-data.pdf), [Pandas Cheat Sheet](https://pandas.pydata.org/Pandas_Cheat_Sheet.pdf).
+**Tidy Data:** [Outline of TidyData Principles](https://vita.had.co.nz/papers/tidy-data.pdf), [Pandas Cheat Sheet](https://pandas.pydata.org/Pandas_Cheat_Sheet.pdf).
 
 ## Visual Examples:
 ![Line plots demonstrating trends in GDP and R&D Budgets over time](Figures/tidydata-fig1.png)
