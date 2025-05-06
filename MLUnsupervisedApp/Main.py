@@ -267,19 +267,14 @@ if data_source == "Upload CSV":
     st.divider()
 
     # PART 2: VARIABLE SELECTION
-    st.header("Part 2: Model and Variable Selection") 
+    st.header("Part 2: Variable Selection") 
 
     data_ready = False # initialize as false to check when data is ready to continue to model training
     
     if data_processed: # checks if data has been successfully pre-processed in last step
-        
-        # step 1: choose a model type to train
-        st.subheader("Step 1: Choose a Clustering Model")
-        # allow user to choose between model types
-        model_choice = st.selectbox('Select Model Type:', ['kMeans', 'hierarchical'])
 
         # step 2: specify column to use as label 
-        st.subheader("Step 2: Remove Labels")
+        st.subheader("Step 1: Remove Labels")
         
         st.markdown("""
         **Label:** Choose a column suitable to act as a label. This column will not be used in the clustering algorithm. \n
@@ -293,7 +288,7 @@ if data_source == "Upload CSV":
             st.dataframe(y.head()) # preview the first few rows of the y variable
 
         # step 3: specify columns to use as features
-        st.subheader("Step 3: Choose Features")
+        st.subheader("Step 2: Choose Features")
         
         st.markdown("""
         **Features:** Please select numeric or encoded categorical variables for the model to use during clustering. 
@@ -356,18 +351,14 @@ else: # elif sample data set used (not custom CSV)
     st.divider()
 
     # PART 2: VARIABLE SELECTION
-    st.header("Part 2: Model and Variable Selection") 
+    st.header("Part 2: Variable Selection") 
 
     data_ready = False # initialize as false to check when data is ready to continue to modeling stages
     
     if data_processed: # checks that data has been successfully processed
-        # step 1: choose a model type to train
-        st.subheader("Step 1: Choose a Clustering Model")
-        # allow user to select a machine learning model
-        model_choice = st.selectbox('Select Model Type:', ['kMeans', 'Hierarchical'])
-
-        # step 2: specify features and label
-        st.subheader("Step 2: Remove Label and Specify Features")
+        
+        # step 1: specify features and label
+        st.subheader("Step 1: Remove Label and Specify Features")
         
         if sample_data == 'penguins':
             features = ['bill_length_mm', 'bill_depth_mm', 'flipper_length_mm', 'body_mass_g']
@@ -404,8 +395,12 @@ st.header("Part 3: Fit a Clustering Model")
 
 if data_ready: # checks if data is ready from previous steps
     
-    # step 1: scale the data before training
-    st.subheader("Step 1: Scaling")
+    st.subheader("Step 1: Choose a Model Type")
+    # allow user to choose between model types
+    model_choice = st.selectbox('Select Model Type:', ['kMeans', 'hierarchical'])
+        
+    # step 2: scale the data before training
+    st.subheader("Step 2: Scaling")
     st.markdown("""
     **Purpose:** Clustering algorithms rely on distance metrics, which are sensitive to the scale of data. \n
     **Action:** Standardize the features (mean = 0, standard deviation = 1) and apply to the data \n  
@@ -418,7 +413,7 @@ if data_ready: # checks if data is ready from previous steps
         st.success("The data has been successfully scaled.")
         
     # step 2: compute clusters
-    st.subheader("Step 2: Compute Clusters")
+    st.subheader("Step 3: Compute Clusters")
     
     # compute clusters corresponding to chosen model
     if model_choice == 'kMeans':
@@ -447,19 +442,17 @@ if data_ready: # checks if data is ready from previous steps
         
         if clusters is not None:
             st.success("kMeans model has been succesfully fit to the data.")
-            st.write(f"Preview of cluster labels: {clusters[:10]}")
-        
-        # visualize the results using PCA
-        
-        st.write("**iii) Visualize the Results:** To visualize the separation of cluster, we must reduce the dataset to two dimensions using PCA.")
-        graph_PCA(X_std, clusters)
         
     else: # model selection is hierarchical
         st.markdown(f"""
         **Current Model Selection:** Hierarchical Clustering \n
         **Model Information:** 
         """)
+    
+    # visualize the results using PCA
         
+    st.subheader("Step 4: Visualize the Results using PCA")
+    graph_PCA(X_std, clusters)
 
     st.divider()
 
