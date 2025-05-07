@@ -115,12 +115,13 @@ def sil_plot_kmeans(k_range, X_std):
     st.pyplot(fig) # display plot
     
     # display success message for best k
-    st.success(f"The best *k* based on silhouette score is **{best_k}**.")
+    st.success(f"The best 'k' based on silhouette score is **{best_k}**.")
     return best_k
         
 def sil_plot_hier(k_range, X):
-    silhouette_scores = [] 
+    silhouette_scores = []  # initialize empty list to store scores
     
+    k_range = [k for k in k_range if k > 1] # exclude k=1 because silhouette score is undefined
     for k in k_range:
         # Fit hierarchical clustering with Ward linkage (same as dendrogram)
         labels = AgglomerativeClustering(n_clusters=k, linkage="ward").fit_predict(X_scaled)
@@ -128,18 +129,24 @@ def sil_plot_hier(k_range, X):
         # Silhouette: +1 = dense & well‑separated, 0 = overlapping, −1 = wrong clustering
         score = silhouette_score(X, labels)
         silhouette_scores.append(score)
-
-    # Plot the curve
-    plt.figure(figsize=(7,4))
-    plt.plot(list(k_range), silhouette_scores, marker="o")
-    plt.xticks(list(k_range))
-    plt.xlabel("Number of Clusters (k)")
-    plt.ylabel("Average Silhouette Score")
-    plt.title("Silhouette Analysis for Agglomerative (Ward) Clustering")
-    plt.grid(True, alpha=0.3)
-    plt.show()
-    
+        
+    # store the best k after finding max score
     best_k = k_range[np.argmax(silhouette_scores)]
+
+    # plot in streamlit
+    fig, ax = plt.subplots(figsize=(8, 5))
+    ax.plot(k_range, silhouette_scores, marker='o', color='blue')
+    ax.axvline(x=best_k, color='red', linestyle='--', label=f"Best k = {best_k}")
+    ax.set_xlabel("Number of Clusters (k)")
+    ax.set_ylabel("Silhouette Score")
+    ax.set_title("Silhouette Score for Agglomerative Clustering")
+    ax.grid(True)
+    ax.legend()
+
+    st.pyplot(fig) # display figure
+    
+    # display success message for best k
+    st.success(f"The best 'k' based on silhouette score is **{best_k}**.")
     return best_k
 
 # --------------- SIDEBAR --------------- #
@@ -414,9 +421,9 @@ if data_ready: # checks if data is ready from previous steps
         
         # initialize by choosing a k to start
         
-        st.write("**i) Initialization:** *k* initial centroids will randomly be chosen.")
+        st.write("**i) Initialization:** 'k' initial centroids will randomly be chosen.")
         # allow user to select a value of k to use
-        k = st.slider("Please select a value for *k*:", 1, 10)
+        k = st.slider("Please select a value for 'k':", 1, 10, value=2)
         
         # run the kMeans algorithm to fit the model
         
@@ -440,11 +447,10 @@ if data_ready: # checks if data is ready from previous steps
         **Model Information:** 
         """)
         
-        # build a dendrogram
+        # i.) build a dendrogram
         st.write("**i) Building a Hierarchical Tree:** Merge clusters until complete.")
         
         Z = linkage(X_std) # will create linkage matrix with default linkage method "ward"
-
         labels = y.to_list() # y is the label selected earlier
 
         # plot dendrogram in streamlit
@@ -452,17 +458,29 @@ if data_ready: # checks if data is ready from previous steps
         dendrogram(Z, truncate_mode="lastp", labels=labels, ax=ax) # creates dendrogram with limited examples shown
         ax.set_title("Hierarchical Clustering Dendrogram")
         ax.set_ylabel("Distance")
-
-        st.pyplot(fig)
+        st.pyplot(fig) # display figure
         
-        # assign k number of clusters using the dendrogram
-        st.write("**ii) Choose the Number of Clusters:** Inspect the dendrogram to choose an appropriate number of *k* clusters.")
-        # allow user to select k based on inspect
-        k = st.slider("Please select a value for *k*:", 1, 10)
-        
-        # run the agglomerative clustering algorithm to fit the model
+        # ii.) assign k number of clusters using the dendrogram
         st.markdown("""
-        **ii) Fitting the Model:**
+        **ii) Choose the Number of Clusters:** 
+        Inspect the dendrogram to choose an appropriate number of 'k' clusters.
+        This should be at the point where merge distances show a clear distinction.
+        """)
+        # allow user to select k based on inspect
+        k = st.slider("Please select a value for 'k':", 1, 10)
+        
+        st.markdown("""
+        <div style="background-color: #f5f5f5; padding: 15px; border-radius: 6px; border: 1px solid #ccc">
+        💡 <b>Hint:</b> If you are still unsure of what 'k' to use based on the dendrogram,  
+        the silhouette plot in <a href="#part-4-hyperparameter-tuning">part 4</a> may help guide your decision.
+        </div>
+        """, unsafe_allow_html=True)
+        st.write("") # add vertical space after box
+
+        
+        # iii) run the agglomerative clustering algorithm to fit the model
+        st.markdown("""
+        **iii) Fitting the Model:**
         Agglomerative clustering with the same linkage method will produce integer labels for the dataframe.
         """)
         
@@ -482,16 +500,19 @@ if data_ready: # checks if data is ready from previous steps
         by reducing the data to a specified number of dimensions.\n
         **Action:** Combine features into principle components that capture maximum variance in the data.
         """)
+    # use defined function to graph clusters on principle components
     graph_PCA(X_std, clusters)
     
+    # allow option for user to interpret the principle components
     if st.toggle("Need help interpreting these principle components? Click here for explanation."):
         st.write("The first principle component...")
         # COMPLETE ANALYSIS
-        
+    
     st.markdown("""
-                > 💭 **Thought Question:** 
-                Are the clusters created by this unsupervised learning algorithm well separated?
-                """)
+    <div style="background-color: #f5f5f5; padding: 15px; border-radius: 6px; border: 1px solid #ccc">
+    💭 <b>Thought Question:</b> Are the clusters created by this unsupervised learning algorithm well separated?
+    </div>
+    """, unsafe_allow_html=True)    
 
     # step 5: analyze model performance
     st.subheader("Step 5: Analyze Model Performance")
@@ -514,33 +535,33 @@ if data_ready: # checks if data is ready from previous steps
         # explain hyperparameter options
         st.markdown("""
         **Options:**
-        - **n_clusters (*k*):** 
+        - **n_clusters (k):** 
         - **max_iter:**
         """)
         
         st.subheader("Step 1: Find the Optimal Number of Clusters")
         
-        st.write("**Purpose:** Testing multiple *k* values allows us to find the optimal number of clusters for the data.")
+        st.write("**Purpose:** Testing multiple 'k' values allows us to find the optimal number of clusters for the data.")
         # allow user to pick a range of k-values to explore
-        min_k, max_k = st.slider("Select a range of *k* values to test:", 1, 20, (1,10), step=1)
+        min_k, max_k = st.slider("Select a range of 'k' values to test:", 1, 20, (1,10), step=1)
         k_range = range(min_k, max_k + 1)
         
         # allow user to pick which option they want to use to find best k
-        st.write("**Options:** For kMeans clustering, elbow and silhouette plots are frequently used to find the best *k* value.")
+        st.write("**Options:** For kMeans clustering, elbow and silhouette plots are frequently used to find the best 'k' value.")
         option = st.selectbox("Select a method to proceed", ("Elbow", "Silhouette"))
         
         if option == "Elbow":
             # explain the use of elbow plots
             st.markdown("""
             **Option 1: Elbow Method** \n
-            Elbow plots track the within-cluster sum of squares (WCSS) against different *k* values.
-            The 'elbow' point (the point at which the rate of decrease suddenly changes) demonstrates an optimal *k* value. \n
+            Elbow plots track the within-cluster sum of squares (WCSS) against different 'k' values.
+            The 'elbow' point (the point at which the rate of decrease suddenly changes) demonstrates an optimal 'k' value. \n
             """)
             elbow_plot(k_range, X_std)
             # ask user to set the best k by visually inspecting the plot
-            best_k = st.number_input("Visually inspect the plot then enter the best *k*:", min_k, max_k)
+            best_k = st.number_input("Visually inspect the plot then enter the best 'k':", min_k, max_k)
             # display success message for best k
-            st.success(f"The best *k* based on the WCSS is **{best_k}**")
+            st.success(f"The best 'k' based on the WCSS is **{best_k}**")
         else: # option == "Silhouette"
             # explain the use of silhouette scores
             st.markdown("""
@@ -548,11 +569,16 @@ if data_ready: # checks if data is ready from previous steps
             Silhouette scores measure the similarity of an observation to its own cluster compared to other clusters,
             in which a higher score indicated better fit. 
             A silhouette plot calculates the average silhouette score of all observations
-            and tracks this average across different *k*.
+            and tracks this average across different 'k'.
             """)
             best_k = sil_plot_kmeans(k_range, X_std)
-            
-        st.subheader("Step 2: Specify the Maximum Number of Iterations")
+        
+        st.markdown("""
+                > 💭 **Thought Question:** 
+                Do both methods suggest the same 'k' value?
+                """)
+        
+        st.subheader("Step 2: Find the Convergence Point")
         # allow user to input the number of iterations to run
         max_iter = st.number_input("Input a number of iterations to run:", 1, 10000)
 
