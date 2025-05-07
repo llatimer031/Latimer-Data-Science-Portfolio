@@ -22,7 +22,7 @@
 ## Features:
 **Data Cleaning:** 
 - Explains violations to TidyData principles.
-- Explores solutions, included `pd.melt()` and `.str.split()` functions.
+- Explores solutions, including `pd.melt()` and `.str.split()` functions.
 
 **Visualizations:** Produces the graphs found in the [Visual Examples](##visual-examples) section. 
 
@@ -31,7 +31,7 @@
 ## References: 
 **Data:** [TidyTuesday Federal Research and Discovery Repository](https://github.com/rfordatascience/tidytuesday/tree/main/data/2019/2019-02-12), [Modified Data](https://github.com/llatimer031/Latimer-Data-Science-Portfolio/blob/main/TidyData-Project/data/fed_rd_year%26gdp.csv)
 
-**Tidy Data:** [Outline of TidyData Principles](https://vita.had.co.nz/papers/tidy-data.pdf), [Pandas Cheat Sheet](https://pandas.pydata.org/Pandas_Cheat_Sheet.pdf).
+**Tidy Data Principles:** [Outline of TidyData Principles](https://vita.had.co.nz/papers/tidy-data.pdf), [Pandas Cheat Sheet](https://pandas.pydata.org/Pandas_Cheat_Sheet.pdf).
 
 ## Visual Examples:
 ![Line plots demonstrating trends in GDP and R&D Budgets over time](Figures/tidydata-fig1.png)

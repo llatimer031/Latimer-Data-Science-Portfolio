@@ -7,14 +7,18 @@ In the [MLStreamlitApp](https://github.com/llatimer031/Latimer-Data-Science-Port
 - **kMeans Clustering:** An algorithm which groups unlabeled data into 'k' clusters by finding the optimal centroid for each grouping. 
 - **(Agglomerative) Hierarchical Clustering:** An algorithm in which each observation is treated as its own cluster and then merged with the nearest cluster until told to stop.
 
+in which hidden structures are revealed without the use of labels. Both methods are commonly used and proven effective, though hierarchical clustering may provide a better starting point if you do not know an initial number of clusters to begin with.
+
 ## Usage:
 To launch via Streamlit cloud:
 (Insert Link)
 
 To launch locally:
-1. **Navigate to the proper folder:** Open your terminal and move to the directory containing 'MLUnsupervisedApp'  
+1. **Clone the repository:**
+   `git clone repository_url`
+2. **Navigate to the proper folder:** Open your terminal and move to the directory containing 'MLUnsupervisedApp'  
    `cd path/to/MLUnsupervisedApp`
-2. **Run using the following command:**  
+3. **Run using the following command:**  
    `streamlit run Main.py`
 4. **Interact with the app:** Explore different datasets, unsupervised learning models, and tuning parameters using the app features below.
 5. **Closing the app:** Close (or kill) the terminal in which the command was run to deactivate the app.
@@ -23,17 +27,26 @@ To launch locally:
 **Data Selection:** Using the sidebar, select a sample dataset or upload a CSV of your own.
 
 **Data Processing:** 
-- For the sample data: Presets will automatically process the data for a uniform set-up of the sample data.
-- For an uploaded CSV: Use the widgets to remove columns of choice, drop observations with missing data, and encode categorical variables.
+- For the sample data: The datasets are fully processed upon download. 
+- For an uploaded CSV: Use the widgets to remove unwanted columns, drop observations with missing data, and encode categorical variables.
 
-**Model and Variable Selection:** Select an unsupervised learning model (kMeans or hierarchical clustering).
-- For the sample data: Features are specified. A label is chosen and removed from the data that will be used. 
-- For tan uploaded CSV: Use the instructions and provided widgets to select suitable features and a viable label, which will be removed from the data that will be used. 
+**Variable Selection:** 
+- For the sample data: Label and features are specified. Note that the label will not be used to fit the model. 
+- For tan uploaded CSV: Use the instructions and provided widgets to select suitable features and a viable label, which will be removed from the data before fitting the model. 
     
-**Model Training and Testing:**
+**Model Training and Testing:** Select an unsupervised learning model (kMeans or hierarchical clustering).
+- Scale the data to ensure accurate performance.
+- Fit the data with a specified number of 'k' clusters.
+  - For hierarchical clustering, build a dendrogram to guide this decision.
+- Analyze performace by visualizing clusters (PCA mapping) and computing accuracy.
 
-
-**Hyperparameter Tuning:** Use the selectebox to choose a hyperparameter and explore its effects on the performance metrics.
+**Hyperparameter Tuning:** Explore each hyperparameter and evaluate its effects on the performance metrics.
+- kMeans:
+  - Use the selectbox to view a method (elbow or silhouette) for evaluating the best 'k'.
+  - Input a number to select the maximum number of iterations run.
+- Hierarchical:
+  - Use the selectbox to explore four linkage types (ward, complete, single, average).
+  - Calculate silhouette scores for a range of 'k' to determine the optimal value.
 
 
 ## References:
