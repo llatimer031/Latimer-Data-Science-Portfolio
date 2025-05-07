@@ -67,12 +67,13 @@ def graph_PCA(X_std, clusters):
 
     st.pyplot(fig)
     
-def elbow_plot(k_range, X):
+def elbow_plot(k_range, X_std):
     wcss = [] # initialize empty list to store WCSS values
     
     for k in k_range: # iterate over the given range of k values
         km = KMeans(n_clusters=k, random_state=42) # run model on given number of clusters
-        km.fit(X) # fit model to data
+        km.fit(X_std) # fit model to data
+        # append to list
         wcss.append(km.inertia_)  # inertia: sum of squared distances within clusters
         
     # plot the result in streamlit
@@ -85,25 +86,36 @@ def elbow_plot(k_range, X):
 
     st.pyplot(fig)
     
-def sil_plot_kmeans(k_range, X):
-    silhouette_scores = [] 
-    
-    for k in k_range:
-        km = KMeans(n_clusters=k, random_state=42)
-        km.fit(X_std)
-        labels = km.labels_
-        silhouette_scores.append(silhouette_score(X, labels))
-    
-    # plot the result
-    plt.subplot(1, 2, 2)
-    plt.plot(k_range, silhouette_scores, marker='o', color='green')
-    plt.xlabel('Number of clusters (k)')
-    plt.ylabel('Silhouette Score')
-    plt.title('Silhouette Score for Optimal k')
-    plt.grid(True)
-    plt.show()  
-    
+def sil_plot_kmeans(k_range, X_std):
+    silhouette_scores = []
+
+    k_range = [k for k in k_range if k > 1]  # excludes k=1 since silhouette score is undefined
+
+    silhouette_scores = [] # initialize empty list to store scores
+    for k in k_range: # iterate through provided k range (excluding k=1)
+        km = KMeans(n_clusters=k, random_state=42) # run model on given number of clusters
+        labels = km.fit_predict(X_std) # fit to data
+        # use silhouette score package to obtain score
+        score = silhouette_score(X_std, labels)
+        # append to list
+        silhouette_scores.append(score) 
+
+    # store the best k by finding the max silhouette score
     best_k = k_range[np.argmax(silhouette_scores)]
+
+    # plot the results in streamlit
+    fig, ax = plt.subplots(figsize=(8, 5))
+    ax.plot(k_range, silhouette_scores, marker='o', color='green')
+    ax.set_xlabel('Number of Clusters (k)')
+    ax.set_ylabel('Silhouette Score')
+    ax.set_title('Silhouette Score for Optimal k')
+    ax.grid(True)
+    ax.legend()
+
+    st.pyplot(fig) # display plot
+    
+    # display success message for best k
+    st.success(f"The best *k* based on silhouette score is **{best_k}**.")
     return best_k
         
 def sil_plot_hier(k_range, X):
@@ -114,7 +126,7 @@ def sil_plot_hier(k_range, X):
         labels = AgglomerativeClustering(n_clusters=k, linkage="ward").fit_predict(X_scaled)
 
         # Silhouette: +1 = dense & well‑separated, 0 = overlapping, −1 = wrong clustering
-        score = silhouette_score(X_scaled, labels)
+        score = silhouette_score(X, labels)
         silhouette_scores.append(score)
 
     # Plot the curve
@@ -527,7 +539,8 @@ if data_ready: # checks if data is ready from previous steps
             elbow_plot(k_range, X_std)
             # ask user to set the best k by visually inspecting the plot
             best_k = st.number_input("Visually inspect the plot then enter the best *k*:", min_k, max_k)
-        
+            # display success message for best k
+            st.success(f"The best *k* based on the WCSS is **{best_k}**")
         else: # option == "Silhouette"
             # explain the use of silhouette scores
             st.markdown("""
@@ -537,7 +550,7 @@ if data_ready: # checks if data is ready from previous steps
             A silhouette plot calculates the average silhouette score of all observations
             and tracks this average across different *k*.
             """)
-        
+            best_k = sil_plot_kmeans(k_range, X_std)
             
         st.subheader("Step 2: Specify the Maximum Number of Iterations")
         # allow user to input the number of iterations to run
