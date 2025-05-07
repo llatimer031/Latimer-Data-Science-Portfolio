@@ -14,9 +14,11 @@ To launch via Streamlit cloud:
 https://latimer-data-science-portfolio-yatfbhmmaejgkactjbctyf.streamlit.app/
 
 To launch locally:
-1. **Navigate to the proper folder:** Open your terminal and move to the directory containing 'MLStreamlitApp'  
+1. **Clone the Repository:**
+   `git clone repository_url`
+2. **Navigate to the proper folder:** Open your terminal and move to the directory containing 'MLStreamlitApp'  
    `cd path/to/MLStreamlitApp`
-2. **Run using the following command:**  
+3. **Run using the following command:**  
    `streamlit run Main.py`
 4. **Interact with the app:** Explore different datasets, supervised learning models, and tuning parameters using the app features below.
 5. **Closing the app:** Close (or kill) the terminal in which the command was run to deactivate the app.
