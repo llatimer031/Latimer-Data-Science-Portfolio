@@ -164,7 +164,13 @@ data_source = st.sidebar.radio("Choose a data source:",
     
 # option (a) upload a CSV file
 if data_source == "Upload CSV":
-    st.sidebar.write("**Note:** Add any relevant notes")
+    st.sidebar.markdown("""
+    **Note:** While unsupervised learning algorithms do not use labeled data to build the model itself,
+    this app utilizes labels to evaluate performance. \n
+    \n 
+    **Recommendation:** Upload a dataset with a **binary** label
+    in order to most effectively explore this app's performance measures. 
+    """)
     
     # provide space to upload a CSV file of choice
     uploaded_file = st.sidebar.file_uploader("Upload your CSV file", type=["csv"])
@@ -227,6 +233,15 @@ if data_source == "Upload CSV":
 
     data_processed = False # initialize as false to check when processing is complete
     if df is not None:
+        
+        # add note about extra processing for csv
+        st.markdown("""
+        <div style="background-color: #f5f5f5; padding: 15px; border-radius: 6px; border: 1px solid #ccc">
+        <b>Note:</b> When using your own CSV file, this app will require a few additional steps 
+        to ensure that your data is ready for modeling. 
+        </div>
+        """, unsafe_allow_html=True)
+        st.write("") # vertical space
     
         # preview the first few rows of the chosen dataset 
         st.write("Below is a preview of your chosen dataset:")
@@ -237,45 +252,60 @@ if data_source == "Upload CSV":
         # explain purpose of removing irrelevant or unhelpful variables
         st.markdown("""
         **Purpose:** Some columns may not contain helpful information, especially if many of its observations are missing values.\n
-        **Action:** The sidebar shows the number of missing values in each column. Remove irrelevant variables before continuing to preserve the number of observations.
+        **Action:** The sidebar shows the number of missing values in each column. Remove irrelevant variables before continuing to preserve the number of observations during the next step.
         """)
+        
         # allow user to select from a list of the df's columns
         cols = st.multiselect("Select columns to **remove**:", df.columns)
         df = df.drop(columns=cols) # drop the selected columns
+        
+        # display status message
+        if cols:
+            st.success(f"The following columns have been succesfully removed: {cols}")
+        else:
+            st.warning("No columns were selected for removal. Select a column *or* proceed without filtering.")
     
         # step 2: remove missing values
         st.subheader("Step 2: Handle Missing Values")
         # explain purpose of removing missing values
         st.markdown("""
-        **Purpose:** The machine learning algorithms used in this app require a dataset without missing values.\n
+        **Purpose:** The unsupervised learning algorithms used in this app require a dataset without missing values.\n
         **Action:** While there are several approaches to handle missing data, 
         including dropping or imputing values, this app will **drop any rows with missing values** for simplicity.
         """)
+        
         df = df.dropna() # remove rows with missing values
         new_dim = df.shape # get dimensions of new df, after removing incomplete rows
         incomplete_rows = original_dim[0] - new_dim[0] # calculate how many rows were removed
+        
         st.success(f"{incomplete_rows} incomplete observations were successfully dropped.")
     
         # step 3: encode variables
         st.subheader("Step 3: Encode Categorical Variables")
         # explain purpose of encoding variables
         st.markdown("""
-        **Purpose:** These clustering algorithms require numerical inputs, 
+        **Purpose:** Unsupervised learning algorithms require numerical inputs, 
         which inhibits them from interpreting categorical variables in their natural state.\n
         **Action:** If you wish to use categorical data as a feature, convert the variable into numeric form using one-hot encoding. \n  
         """)
+        
         # create list of categorical columns to select from
         cat_cols = df.select_dtypes(include=['object', 'category']).columns.tolist()
-        # allow user to select multiple of the categorical columns to encode
-        encode_cols = st.multiselect("Select categorical columns to encode:", cat_cols)
         
-        if encode_cols: # if the user selected columns
-            # one-hot encode variables and save to existing df
-            df = pd.get_dummies(df, columns=encode_cols, drop_first=True)
-            st.success("Selected columns were encoded using one-hot encoding.")
-        else: # if the user has not selected any columns
-            st.warning("No columns selected for encoding.")
-
+        # check to see if the dataset contained categorical columns
+        if cat_cols:
+            # allow user to select multiple of the categorical columns to encode
+            encode_cols = st.multiselect("Select categorical columns to encode:", cat_cols)
+            
+            if encode_cols: # if the user selected columns
+                # one-hot encode variables and save to existing df
+                df = pd.get_dummies(df, columns=encode_cols, drop_first=True)
+                st.success("Selected columns were encoded using one-hot encoding.")
+            else: # if the user has not selected any columns
+                st.warning("No columns selected for encoding.")
+                
+        else: # no categorical columns
+            st.success("This dataset contains no categorical columns. Proceed without encoding.")
         data_processed = True # mark data as ready to continue
     
     else: # df does not exist or is empty
@@ -297,6 +327,7 @@ if data_source == "Upload CSV":
         **Label:** Choose a column suitable to act as a label. This column will not be used in the clustering algorithm. \n
         **Note:** While unsupervised methods do not use labels directly,
         this choice can be used later to check the accuracy of the clusters produced. 
+        Binary labels are recommended for optimal compatibility with the performance metrics in this app.
         """)
         # allow user to select a label among the columns
         label = st.selectbox("Select a label to **exclude**:", df.columns)
@@ -454,7 +485,7 @@ if data_ready: # checks if data is ready from previous steps
         """)
         
         # i.) build a dendrogram
-        st.write("**i) Building a Hierarchical Tree:** Merge clusters until only one remains.")
+        st.write("**i) Building a Hierarchical Tree:** Merge clusters until only one remains using ward linkage [(more info on linkage types here)](#step-1-find-the-best-linkage-method).")
         
         Z = linkage(X_std, method="ward") # will create linkage matrix using ward linkage
         labels = y.to_list() # y is the label selected earlier
@@ -478,7 +509,7 @@ if data_ready: # checks if data is ready from previous steps
         st.markdown("""
         <div style="background-color: #f5f5f5; padding: 15px; border-radius: 6px; border: 1px solid #ccc">
         💡 <b>Hint:</b> If you are still unsure of what 'k' to use based on the dendrogram,  
-        the silhouette plot in <a href="#part-4-hyperparameter-tuning">part 4</a> may help guide your decision.
+        the silhouette plot in <a href="#step-2-find-the-optimal-number-of-clusters">part 4.2</a> may help guide your decision.
         </div>
         """, unsafe_allow_html=True)
         st.write("") # add vertical space after box
