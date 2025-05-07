@@ -404,7 +404,7 @@ if data_ready: # checks if data is ready from previous steps
     st.subheader("Step 2: Scaling")
     st.markdown("""
     **Purpose:** Clustering algorithms rely on distance metrics, which are sensitive to the scale of data. \n
-    **Action:** Standardize the features (mean = 0, standard deviation = 1) and apply to the data \n  
+    **Action:** Standardize the features (mean = 0, standard deviation = 1) and apply to the data. \n  
     """)
     
     scaler = StandardScaler()
@@ -420,7 +420,8 @@ if data_ready: # checks if data is ready from previous steps
     if model_choice == 'kMeans':
         st.markdown("""
         **Current Model Selection:** kMeans Clustering \n
-        **Model Information:**  \n
+        **Model Information:** This method is an algorithm which groups unlabeled data into 'k' clusters 
+        by finding the optimal centroid for each grouping.\n
         """)
         
         # initialize by choosing a k to start
@@ -447,12 +448,13 @@ if data_ready: # checks if data is ready from previous steps
         
     else: # model selection is hierarchical
         st.markdown(f"""
-        **Current Model Selection:** Hierarchical Clustering \n
-        **Model Information:** 
+        **Current Model Selection:** (Agglomerative) Hierarchical Clustering \n
+        **Model Information:** This method is an algorithm in which each observation is treated as its own cluster 
+        and then merged with the nearest cluster until complete (or told to stop).
         """)
         
         # i.) build a dendrogram
-        st.write("**i) Building a Hierarchical Tree:** Merge clusters until complete.")
+        st.write("**i) Building a Hierarchical Tree:** Merge clusters until only one remains.")
         
         Z = linkage(X_std, method="ward") # will create linkage matrix using ward linkage
         labels = y.to_list() # y is the label selected earlier
@@ -471,7 +473,7 @@ if data_ready: # checks if data is ready from previous steps
         This should be at the point where merge distances show a clear distinction.
         """)
         # allow user to select k based on inspect
-        k = st.slider("Please select a value for 'k':", 1, 10)
+        k = st.slider("Please select a value for 'k':", 1, 10, value=2)
         
         st.markdown("""
         <div style="background-color: #f5f5f5; padding: 15px; border-radius: 6px; border: 1px solid #ccc">
@@ -516,7 +518,7 @@ if data_ready: # checks if data is ready from previous steps
     💭 <b>Thought Question:</b> Are the clusters created by this unsupervised learning algorithm well separated?
     </div>
     """, unsafe_allow_html=True)  
-    st.write("") # verticle space following box  
+    st.write("") # vertical space following box  
 
     # step 5: analyze model performance
     st.subheader("Step 5: Analyze Model Performance")
@@ -579,9 +581,11 @@ if data_ready: # checks if data is ready from previous steps
             best_k = sil_plot_kmeans(k_range, X_std)
         
         st.markdown("""
-                > 💭 **Thought Question:** 
-                Do both methods suggest the same 'k' value?
-                """)
+        <div style="background-color: #f5f5f5; padding: 15px; border-radius: 6px; border: 1px solid #ccc">
+        💭 <b>Thought Question:</b> Do both methods suggest the same 'k' value?
+        </div>
+        """, unsafe_allow_html=True)  
+        st.write("") # verticle space following box 
         
         st.subheader("Step 2: Find the Convergence Point")
         # allow user to input the number of iterations to run
@@ -596,30 +600,12 @@ if data_ready: # checks if data is ready from previous steps
         # explain hyperparameter options
         st.markdown("""
         **Options:**
-        - **linkage:**
-        - **n_clusters:**
+        - **linkage:** specifies the calculation performed to identify next 'nearest' cluster.
+        - **n_clusters (k):** specifies the number of clusters the algorithm creates.
         """)
         
-        # step 1: find the optimal number of clusters
-        st.subheader("Step 1: Find the Optimal Number of Clusters")
-        
-        st.write("**Purpose:** Testing multiple 'k' values allows us to find the optimal number of clusters for the data.")
-        # allow user to pick a range of k-values to explore
-        min_k, max_k = st.slider("Select a range of 'k' values to test:", 1, 20, (1,10), step=1)
-        k_range = range(min_k, max_k + 1)
-        
-        st.markdown("""
-        **Approach: Silhouette Score** \n
-        Silhouette scores measure how similar an observation is to its own cluster compared to other clusters,
-        in which a higher score indicates better fit. 
-        A silhouette plot calculates the average silhouette score of all observations
-        and tracks this average across different 'k'.
-        """)
-        # use function to display plot and return best k
-        best_k = sil_plot_kmeans(k_range, X_std) 
-        
-        # step 2: test alternate linkages
-        st.subheader("Step 2: Test Alternate Linkages")
+        # step 1: test alternate linkages
+        st.subheader("Step 1: Find the Best Linkage Method")
         st.markdown("""
         **Linkage Options:**
         - **Ward:** Minimizes variance within clusters (used above). Operates most similar to kMeans.
@@ -641,8 +627,8 @@ if data_ready: # checks if data is ready from previous steps
         ax.set_ylabel("Distance")
         st.pyplot(fig) # display figure
         
-        # run agglomerative clustering using chosen linkage and best k
-        agg_tuned = AgglomerativeClustering(n_clusters=best_k, linkage=linkage_type) 
+        # run agglomerative clustering using chosen linkage and k from earlier
+        agg_tuned = AgglomerativeClustering(n_clusters=k, linkage=linkage_type) 
         clusters_tuned = agg_tuned.fit_predict(X_std) # save the predictions to the cluster variable
         
         # visualize PCA results
@@ -651,6 +637,32 @@ if data_ready: # checks if data is ready from previous steps
         # calculate accuracy
         accuracy_tuned = accuracy_score(y, clusters_tuned)
         st.write(f"Accuracy Score: {accuracy_tuned * 100:.2f}%")
+        
+        # step 2: find the optimal number of clusters
+        st.subheader("Step 2: Find the Optimal Number of Clusters")
+        
+        st.write("**Purpose:** Testing multiple 'k' values allows us to find the optimal number of clusters for the data.")
+        # allow user to pick a range of k-values to explore
+        min_k, max_k = st.slider("Select a range of 'k' values to test:", 1, 20, (1,10), step=1)
+        k_range = range(min_k, max_k + 1)
+        
+        st.markdown("""
+        **Approach: Silhouette Score** \n
+        Silhouette scores measure how similar an observation is to its own cluster compared to other clusters,
+        in which a higher score indicates better fit. 
+        A silhouette plot calculates the average silhouette score of all observations
+        and tracks this average across different 'k'.
+        """)
+        # use function to display plot and return best k
+        best_k = sil_plot_kmeans(k_range, X_std) 
+        
+        st.markdown("""
+        <div style="background-color: #f5f5f5; padding: 15px; border-radius: 6px; border: 1px solid #ccc">
+        💭 <b>Thought Question:</b> Which combination of linkage and 'k' yields the best performance values?
+        </div>
+        """, unsafe_allow_html=True)  
+        st.write("") # verticle space following box 
+    
         
 else:
     # warning displays if data has not been split
