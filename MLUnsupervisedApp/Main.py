@@ -63,6 +63,7 @@ def graph_PCA(X_std, clusters):
             label=f'Cluster {cluster_label}'
         )
 
+    ax.set_title('Cluster Mapping: 2D PCA')
     ax.set_xlabel('Principal Component 1')
     ax.set_ylabel('Principal Component 2')
     ax.legend(loc='best')
@@ -122,28 +123,27 @@ def sil_plot_kmeans(k_range, X_std):
     st.success(f"The best 'k' based on silhouette score is **{best_k}**.")
     return best_k
         
-def sil_plot_hier(k_range, X):
+def sil_plot_hier(k_range, X_std, linkage='ward'):
     silhouette_scores = []  # initialize empty list to store scores
     
     k_range = [k for k in k_range if k > 1] # exclude k=1 because silhouette score is undefined
     for k in k_range:
         # Fit hierarchical clustering with Ward linkage (same as dendrogram)
-        labels = AgglomerativeClustering(n_clusters=k, linkage="ward").fit_predict(X_scaled)
+        labels = AgglomerativeClustering(n_clusters=k, linkage=linkage).fit_predict(X_std)
 
         # Silhouette: +1 = dense & well‑separated, 0 = overlapping, −1 = wrong clustering
-        score = silhouette_score(X, labels)
+        score = silhouette_score(X_std, labels)
         silhouette_scores.append(score)
         
     # store the best k after finding max score
     best_k = k_range[np.argmax(silhouette_scores)]
 
-    # plot in streamlit
+    # plot the results in streamlit
     fig, ax = plt.subplots(figsize=(8, 5))
-    ax.plot(k_range, silhouette_scores, marker='o', color='blue')
-    ax.axvline(x=best_k, color='red', linestyle='--', label=f"Best k = {best_k}")
-    ax.set_xlabel("Number of Clusters (k)")
-    ax.set_ylabel("Silhouette Score")
-    ax.set_title("Silhouette Score for Agglomerative Clustering")
+    ax.plot(k_range, silhouette_scores, marker='o', color='green')
+    ax.set_xlabel('Number of Clusters (k)')
+    ax.set_ylabel('Silhouette Score')
+    ax.set_title('Silhouette Score for Optimal k')
     ax.grid(True)
     ax.legend()
 
@@ -422,7 +422,7 @@ st.divider()
 
 # ----- ALL DATASETS ----- #
 
-# PART 3: TRAIN MODEL
+# PART 3: FIT MODEL
 st.header("Part 3: Fit a Clustering Model")
 
 if data_ready: # checks if data is ready from previous steps
@@ -493,8 +493,9 @@ if data_ready: # checks if data is ready from previous steps
         # plot dendrogram in streamlit
         fig, ax = plt.subplots(figsize=(20, 7))
         dendrogram(Z, truncate_mode="lastp", labels=labels, ax=ax) # creates dendrogram with limited examples shown
-        ax.set_title("Hierarchical Clustering Dendrogram")
+        ax.set_title("Hierarchical Clustering Dendrogram (Ward Linkage)")
         ax.set_ylabel("Distance")
+        ax.set_xlabel("Lables")
         st.pyplot(fig) # display figure
         
         # ii.) assign k number of clusters using the dendrogram
@@ -528,9 +529,13 @@ if data_ready: # checks if data is ready from previous steps
         if clusters is not None:
             st.success("The hierarchical model has been successfully fit to the data.")
             
-    # step 4: visualize the results using PCA
+    # step 4: analyze results
         
-    st.subheader("Step 4: Visualize Clusters using Principle Component Analysis (PCA)")
+    st.subheader("Step 4: Analyze Model Performance")
+    
+    # look at visual representation of clusters on PCA graph
+    st.write("**i) Visualize Clusters using Principle Component Analysis (PCA)**")
+    
     st.markdown("""
         **Purpose:** When data is high-dimensional, it can become difficult to both analyze and interpret.
         This event is called the *curse of dimensionality,* a problem in which PCA aims to solve
@@ -538,7 +543,14 @@ if data_ready: # checks if data is ready from previous steps
         **Action:** Combine features into principle components that capture maximum variance in the data.
         """)
     # use defined function to graph clusters on principle components
-    graph_PCA(X_std, clusters)
+    col1, col2 = st.columns(2)
+    with col1:
+        # add centered label using markdown
+        st.markdown("<h4 style='text-align: center;'>Predicted Clusters</h4>", unsafe_allow_html=True)
+        graph_PCA(X_std, clusters)
+    with col2:
+        st.markdown("<h4 style='text-align: center;'>True Labels</h4>", unsafe_allow_html=True)
+        graph_PCA(X_std, y)
     
     # allow option for user to interpret the principle components
     if st.toggle("Need help interpreting these principle components? Click here for explanation."):
@@ -552,7 +564,7 @@ if data_ready: # checks if data is ready from previous steps
     st.write("") # vertical space following box  
 
     # step 5: analyze model performance
-    st.subheader("Step 5: Analyze Model Performance")
+    st.write("**ii) Calculate Accuracy Scores**")
     
     #st.dataframe(y)
     #st.dataframe(clusters)
@@ -572,8 +584,8 @@ if data_ready: # checks if data is ready from previous steps
         # explain hyperparameter options
         st.markdown("""
         **Options:**
-        - **n_clusters (k):** 
-        - **max_iter:**
+        - **n_clusters (k):** specifies the number of initial centroids (and thus number of clusters) that the model creates.
+        - **max_iter:** maximum number of iterations for the k-means algorithm.
         """)
         
         st.subheader("Step 1: Find the Optimal Number of Clusters")
@@ -618,14 +630,23 @@ if data_ready: # checks if data is ready from previous steps
         """, unsafe_allow_html=True)  
         st.write("") # verticle space following box 
         
-        st.subheader("Step 2: Find the Convergence Point")
+        # step 2: set max_iter to find the convergence point
+        st.subheader("Step 2: Investigate Convergence")
         # allow user to input the number of iterations to run
         max_iter = st.number_input("Input a number of iterations to run:", 1, 10000)
 
         # run the model with the adjusted number of iterations
-        kmeans_tuned = KMeans(n_clusters=k, max_iter=max_iter, random_state=42) # create model with specified iterations
+        kmeans_tuned = KMeans(n_clusters=best_k, max_iter=max_iter, random_state=42) # create model with specified iterations
         clusters_tuned = kmeans_tuned.fit_predict(X_std) # fit model to data to create clusters
         
+        # visualize PCA results
+        graph_PCA(X_std, clusters_tuned)
+        st.markdown("""
+        <div style="background-color: #f5f5f5; padding: 15px; border-radius: 6px; border: 1px solid #ccc">
+        💭 <b>Thought Question:</b> Are you able to identify any observations switching clusters between iterations?
+        </div>
+        """, unsafe_allow_html=True)  
+        st.write("") # verticle space following box 
         
     else: # model_choice == 'hierarchical'
         # explain hyperparameter options
@@ -650,24 +671,15 @@ if data_ready: # checks if data is ready from previous steps
         
         # create linkage matrix using chosen linkage methods
         Z_tuned = linkage(X_std, method=linkage_type) 
-
+        
+        st.write(f"See the dendrogram for {linkage_type} linkage below:")
         # plot dendrogram in streamlit
         fig, ax = plt.subplots(figsize=(20, 7))
         dendrogram(Z_tuned, truncate_mode="lastp", labels=labels, ax=ax) # creates dendrogram with limited examples shown
-        ax.set_title("Hierarchical Clustering Dendrogram")
+        ax.set_title(f"Hierarchical Clustering Dendrogram ({linkage_type})")
         ax.set_ylabel("Distance")
+        ax.set_xlabel("Labels")
         st.pyplot(fig) # display figure
-        
-        # run agglomerative clustering using chosen linkage and k from earlier
-        agg_tuned = AgglomerativeClustering(n_clusters=k, linkage=linkage_type) 
-        clusters_tuned = agg_tuned.fit_predict(X_std) # save the predictions to the cluster variable
-        
-        # visualize PCA results
-        graph_PCA(X_std, clusters_tuned)
-        
-        # calculate accuracy
-        accuracy_tuned = accuracy_score(y, clusters_tuned)
-        st.write(f"Accuracy Score: {accuracy_tuned * 100:.2f}%")
         
         # step 2: find the optimal number of clusters
         st.subheader("Step 2: Find the Optimal Number of Clusters")
@@ -685,7 +697,20 @@ if data_ready: # checks if data is ready from previous steps
         and tracks this average across different 'k'.
         """)
         # use function to display plot and return best k
-        best_k = sil_plot_kmeans(k_range, X_std) 
+        best_k = sil_plot_hier(k_range, X_std, linkage=linkage_type) 
+        
+        st.subheader("Step 3: Analyze Performance")
+        # run agglomerative clustering using chosen linkage and best_k
+        agg_tuned = AgglomerativeClustering(n_clusters=k, linkage=linkage_type) 
+        clusters_tuned = agg_tuned.fit_predict(X_std) # save the predictions to the cluster variable
+        
+        st.write("With the chosen parameters, the predicted clusters look like:")
+        # visualize PCA results
+        graph_PCA(X_std, clusters_tuned)
+        
+        # calculate accuracy
+        accuracy_tuned = accuracy_score(y, clusters_tuned)
+        st.write(f"Accuracy Score: {accuracy_tuned * 100:.2f}%")
         
         st.markdown("""
         <div style="background-color: #f5f5f5; padding: 15px; border-radius: 6px; border: 1px solid #ccc">
