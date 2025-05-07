@@ -27,7 +27,7 @@ Follow these steps to use the Streamlit app:
 ## References:
 **Data:** [Palmer's Penguins CSV](https://github.com/llatimer031/Latimer-Data-Science-Portfolio/blob/main/basic-streamlit-app/data/penguins.csv)
 
-**Streamlit:** [Streamlit API Cheat Sheet](https://docs.streamlit.io/develop/quick-reference/cheat-sheet), [Streamlit Cloud](https://docs.streamlit.io/deploy/streamlit-community-cloud/deploy-your-app)
+**Streamlit:** [Streamlit API Cheat Sheet](https://docs.streamlit.io/develop/quick-reference/cheat-sheet)
 
 ## Visual Examples:
 ![Final Dataframe](Images/penguins-app.png)
