@@ -42,7 +42,7 @@ st.header("An interactive walkthrough data processing, model selection, and para
 
 # --------------- FUNCTIONS --------------- #
 
-# run a k means clustering model
+# function that will map clusters onto 2D space using PCA
 def graph_PCA(X_std, clusters):
     pca = PCA(n_components=2)
     X_pca = pca.fit_transform(X_std)
@@ -70,7 +70,8 @@ def graph_PCA(X_std, clusters):
     ax.grid(True)
 
     st.pyplot(fig) #display plot
-    
+
+# function used to find the elbow point in WCSS scores across k-values 
 def elbow_plot(k_range, X_std):
     wcss = [] # initialize empty list to store WCSS values
     
@@ -90,7 +91,7 @@ def elbow_plot(k_range, X_std):
 
     st.pyplot(fig) #display plot
 
-    
+# function used to plot kMeans silhouette scores across k-values 
 def sil_plot_kmeans(k_range, X_std):
     silhouette_scores = []
 
@@ -122,7 +123,8 @@ def sil_plot_kmeans(k_range, X_std):
     # display success message for best k
     st.success(f"The best 'k' based on silhouette score is **{best_k}**.")
     return best_k
-        
+
+# function used to plot hierarchical silhouette scores across k-scores 
 def sil_plot_hier(k_range, X_std, linkage='ward'):
     silhouette_scores = []  # initialize empty list to store scores
     
@@ -153,6 +155,24 @@ def sil_plot_hier(k_range, X_std, linkage='ward'):
     st.success(f"The best 'k' based on silhouette score is **{best_k}**.")
     return best_k
 
+# create function to display message corresponding to accuracy score
+def accuracy_message(accuracy):
+    if accuracy >= 0.75:
+        # displays green success message for high accuracy
+        st.success(f"{accuracy * 100:.0f}% of the predicted cluster labels matched the true labels.")
+    elif accuracy >= 0.50:
+        # displays yellow 'warning' message for moderate accuracy
+        st.warning(f"{accuracy * 100:.0f}% of the predicted cluster labels matched the true label.")
+    else:
+        # displays red error message for poor accuracy
+        st.error(f"{accuracy * 100:.0f}% of the predicted cluster labels matched the true label.")
+        if st.toggle("Low accuracy score? Click here for some potential reasons why."):
+            st.markdown("""
+            - **Data:** The data may not have distinct clusters.
+            - **Incorrect 'k':** The model is using a different number of clusters than found in the true label. 
+            - **Label Mismatch:** The cluster labels created by the model are arbitrary, and may not match the true labels.
+                - For example, if you have a binary label and an accuracy score of 0%, that indicates that each of the observations are correctly grouped, but the labels are simply swapped. 
+            """)
 # --------------- SIDEBAR --------------- #
 
 # create sidebar to customize data and model options
@@ -566,12 +586,10 @@ if data_ready: # checks if data is ready from previous steps
     # step 5: analyze model performance
     st.write("**ii) Calculate Accuracy Scores**")
     
-    #st.dataframe(y)
-    #st.dataframe(clusters)
-    
     # import accuracy score to calculate the percentage of data points correctly predicted
     accuracy = accuracy_score(y, clusters)
-    st.write(f"Accuracy Score: {accuracy * 100:.2f}%")
+    st.write(f"Accuracy Score: {accuracy:.2f}")
+    accuracy_message(accuracy)
     
     st.divider()
 
@@ -648,6 +666,31 @@ if data_ready: # checks if data is ready from previous steps
         """, unsafe_allow_html=True)  
         st.write("") # verticle space following box 
         
+        # step 3: analyze performance
+        st.subheader("Step 3: Analyze Performance")
+        st.markdown("""
+        ##### Performance Metrics
+        """)
+        
+        st.write("**i) Calculate an updated accuracy score**")
+        # calculate accuracy
+        accuracy_tuned = accuracy_score(y, clusters_tuned)
+        st.write(f"Accuracy Score: {accuracy_tuned:.2f}")
+        
+        st. write("**ii) Calculate an updated silhouette score**")
+        # calculate silhouette score
+        silhouette_tuned = silhouette_score(X_std, clusters_tuned)
+        st.write(f"Silhouette Score: {silhouette_tuned: .2f}")
+        
+        st.markdown("""
+        <div style="background-color: #f5f5f5; padding: 15px; border-radius: 6px; border: 1px solid #ccc">
+        💭 <b>Thought Question:</b> Did making parameter adjustments improve the performance metrics from your initial model? 
+        Which had a larger impact, number of clusters or number of iterations?
+        </div>
+        """, unsafe_allow_html=True)  
+        st.write("") # verticle space following box 
+    
+        
     else: # model_choice == 'hierarchical'
         # explain hyperparameter options
         st.markdown("""
@@ -699,22 +742,34 @@ if data_ready: # checks if data is ready from previous steps
         # use function to display plot and return best k
         best_k = sil_plot_hier(k_range, X_std, linkage=linkage_type) 
         
+        # step 3: analyze performance
         st.subheader("Step 3: Analyze Performance")
         # run agglomerative clustering using chosen linkage and best_k
-        agg_tuned = AgglomerativeClustering(n_clusters=k, linkage=linkage_type) 
+        agg_tuned = AgglomerativeClustering(n_clusters=best_k, linkage=linkage_type) 
         clusters_tuned = agg_tuned.fit_predict(X_std) # save the predictions to the cluster variable
         
         st.write("With the chosen parameters, the predicted clusters look like:")
         # visualize PCA results
         graph_PCA(X_std, clusters_tuned)
         
+        st.markdown("""
+        ##### Performance Metrics
+        """)
+        
+        st. write("**i) Calculate an updated accuracy score**")
         # calculate accuracy
         accuracy_tuned = accuracy_score(y, clusters_tuned)
-        st.write(f"Accuracy Score: {accuracy_tuned * 100:.2f}%")
+        st.write(f"Accuracy Score: {accuracy_tuned:.2f}")
+        
+        st. write("**ii) Calculate an updated silhouette score**")
+        # calculate silhouette score
+        silhouette_tuned = silhouette_score(X_std, clusters_tuned)
+        st.write(f"Silhouette Score: {silhouette_tuned: .2f}")
         
         st.markdown("""
         <div style="background-color: #f5f5f5; padding: 15px; border-radius: 6px; border: 1px solid #ccc">
-        💭 <b>Thought Question:</b> Which combination of linkage and 'k' yields the best performance values?
+        💭 <b>Thought Question:</b> Which combination of linkage and 'k' yields the best performance values? 
+        Did performance improve from the initial model?
         </div>
         """, unsafe_allow_html=True)  
         st.write("") # verticle space following box 
