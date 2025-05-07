@@ -68,21 +68,22 @@ def graph_PCA(X_std, clusters):
     st.pyplot(fig)
     
 def elbow_plot(k_range, X):
-    wcss = []
+    wcss = [] # initialize empty list to store WCSS values
     
-    for k in k_range:
-        km = KMeans(n_clusters=k, random_state=42)
-        km.fit(X)
+    for k in k_range: # iterate over the given range of k values
+        km = KMeans(n_clusters=k, random_state=42) # run model on given number of clusters
+        km.fit(X) # fit model to data
         wcss.append(km.inertia_)  # inertia: sum of squared distances within clusters
         
-    # plot the result
-    plt.figure(figsize=(12, 5))
-    plt.plot(k_range, wcss, marker='o')
-    plt.xlabel('Number of clusters (k)')
-    plt.ylabel('Within-Cluster Sum of Squares (WCSS)')
-    plt.title('Elbow Method for Optimal k')
-    plt.grid(True)
-    plt.show()
+    # plot the result in streamlit
+    fig, ax = plt.subplots(figsize=(10, 5))
+    ax.plot(k_range, wcss, marker='o')
+    ax.set_xlabel('Number of Clusters (k)')
+    ax.set_ylabel('Within-Cluster Sum of Squares (WCSS)')
+    ax.set_title('Elbow Method for Optimal k')
+    ax.grid(True)
+
+    st.pyplot(fig)
     
 def sil_plot_kmeans(k_range, X):
     silhouette_scores = [] 
@@ -483,6 +484,9 @@ if data_ready: # checks if data is ready from previous steps
     # step 5: analyze model performance
     st.subheader("Step 5: Analyze Model Performance")
     
+    #st.dataframe(y)
+    #st.dataframe(clusters)
+    
     # import accuracy score to calculate the percentage of data points correctly predicted
     accuracy = accuracy_score(y, clusters)
     st.write(f"Accuracy Score: {accuracy * 100:.2f}%")
@@ -498,28 +502,52 @@ if data_ready: # checks if data is ready from previous steps
         # explain hyperparameter options
         st.markdown("""
         **Options:**
-        - **n_clusters:** 
+        - **n_clusters (*k*):** 
         - **max_iter:**
         """)
         
-        st.subheader("Step 1: Choose a Hyperparameter")
-        # allow user to select a parameter from the given options
-        param = st.selectbox("Select a parameter to explore:", ("n_clusters", "max_iter"))
+        st.subheader("Step 1: Find the Optimal Number of Clusters")
         
-        if param == "k": # penalty is selected
-            # explain elbow plot
-            # plot elbow plot
-            
-            # explain silhouette plot
-            # plot silhouette plot
-            pass
-            
-        else: # max_iter is selected
-            max_iter = st.number_input("Input a number of iterations to run:", 1, 10000)
-            kmeans_tuned = KMeans(n_clusters=k, max_iter=max_iter, random_state=42) # create model with specified iterations
-            clusters_tuned = kmeans_tuned.fit_predict(X_std) # fit model to data to create clusters
+        st.write("**Purpose:** Testing multiple *k* values allows us to find the optimal number of clusters for the data.")
+        # allow user to pick a range of k-values to explore
+        min_k, max_k = st.slider("Select a range of *k* values to test:", 1, 20, (1,10), step=1)
+        k_range = range(min_k, max_k + 1)
         
-        st.subheader("Step 2: Analyze Performance")
+        # allow user to pick which option they want to use to find best k
+        st.write("**Options:** For kMeans clustering, elbow and silhouette plots are frequently used to find the best *k* value.")
+        option = st.selectbox("Select a method to proceed", ("Elbow", "Silhouette"))
+        
+        if option == "Elbow":
+            # explain the use of elbow plots
+            st.markdown("""
+            **Option 1: Elbow Method** \n
+            Elbow plots track the within-cluster sum of squares (WCSS) against different *k* values.
+            The 'elbow' point (the point at which the rate of decrease suddenly changes) demonstrates an optimal *k* value. \n
+            """)
+            elbow_plot(k_range, X_std)
+            # ask user to set the best k by visually inspecting the plot
+            best_k = st.number_input("Visually inspect the plot then enter the best *k*:", min_k, max_k)
+        
+        else: # option == "Silhouette"
+            # explain the use of silhouette scores
+            st.markdown("""
+            **Option 2: Silhouette Score** \n
+            Silhouette scores measure the similarity of an observation to its own cluster compared to other clusters,
+            in which a higher score indicated better fit. 
+            A silhouette plot calculates the average silhouette score of all observations
+            and tracks this average across different *k*.
+            """)
+        
+            
+        st.subheader("Step 2: Specify the Maximum Number of Iterations")
+        # allow user to input the number of iterations to run
+        max_iter = st.number_input("Input a number of iterations to run:", 1, 10000)
+
+        # run the model with the adjusted number of iterations
+        kmeans_tuned = KMeans(n_clusters=k, max_iter=max_iter, random_state=42) # create model with specified iterations
+        clusters_tuned = kmeans_tuned.fit_predict(X_std) # fit model to data to create clusters
+        
+        st.subheader("Step 3: Analyze Performance")
         
         
         
