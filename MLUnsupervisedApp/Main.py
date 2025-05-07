@@ -25,13 +25,16 @@ from sklearn.metrics import silhouette_score
 # --------------- TITLE --------------- #
 
 # set up title, author, and description
-st.set_page_config(layout='centered')
-col1, mid, col2 = st.columns([10,1,30]) # splits the page into three columned sections
+st.set_page_config(layout='wide')
+col1, col2 = st.columns([1,6]) # splits the page into three columned sections
 with col1: 
     # add image to first column
-    st.image("https://raw.githubusercontent.com/llatimer031/Latimer-Data-Science-Portfolio/main/MLStreamlitApp/Images/streamlit-app.jpeg", width=150)
+    st.image("https://raw.githubusercontent.com/llatimer031/Latimer-Data-Science-Portfolio/main/MLStreamlitApp/Images/streamlit-app.jpeg", width=175)
 with col2:
     # add title and other info to second column
+    st.write("") # vertical space for formatting
+    st.write("") # vertical space for formatting
+    st.write("") # vertical space for formatting
     st.title("(Un)Supervised Learning via Streamlit:")
     st.write("By: Lauren Latimer | GitHub: [llatimer031](https://github.com/llatimer031/Latimer-Data-Science-Portfolio/tree/main/MLStreamlitApp)")
     
@@ -65,7 +68,7 @@ def graph_PCA(X_std, clusters):
     ax.legend(loc='best')
     ax.grid(True)
 
-    st.pyplot(fig)
+    st.pyplot(fig) #display plot
     
 def elbow_plot(k_range, X_std):
     wcss = [] # initialize empty list to store WCSS values
@@ -77,14 +80,15 @@ def elbow_plot(k_range, X_std):
         wcss.append(km.inertia_)  # inertia: sum of squared distances within clusters
         
     # plot the result in streamlit
-    fig, ax = plt.subplots(figsize=(10, 5))
+    fig, ax = plt.subplots(figsize=(8, 5))
     ax.plot(k_range, wcss, marker='o')
     ax.set_xlabel('Number of Clusters (k)')
     ax.set_ylabel('Within-Cluster Sum of Squares (WCSS)')
     ax.set_title('Elbow Method for Optimal k')
     ax.grid(True)
 
-    st.pyplot(fig)
+    st.pyplot(fig) #display plot
+
     
 def sil_plot_kmeans(k_range, X_std):
     silhouette_scores = []
@@ -112,7 +116,7 @@ def sil_plot_kmeans(k_range, X_std):
     ax.grid(True)
     ax.legend()
 
-    st.pyplot(fig) # display plot
+    st.pyplot(fig) #display plot
     
     # display success message for best k
     st.success(f"The best 'k' based on silhouette score is **{best_k}**.")
@@ -143,7 +147,7 @@ def sil_plot_hier(k_range, X):
     ax.grid(True)
     ax.legend()
 
-    st.pyplot(fig) # display figure
+    st.pyplot(fig) #display plot
     
     # display success message for best k
     st.success(f"The best 'k' based on silhouette score is **{best_k}**.")
@@ -450,7 +454,7 @@ if data_ready: # checks if data is ready from previous steps
         # i.) build a dendrogram
         st.write("**i) Building a Hierarchical Tree:** Merge clusters until complete.")
         
-        Z = linkage(X_std) # will create linkage matrix with default linkage method "ward"
+        Z = linkage(X_std, method="ward") # will create linkage matrix using ward linkage
         labels = y.to_list() # y is the label selected earlier
 
         # plot dendrogram in streamlit
@@ -484,12 +488,12 @@ if data_ready: # checks if data is ready from previous steps
         Agglomerative clustering with the same linkage method will produce integer labels for the dataframe.
         """)
         
-        agg = AgglomerativeClustering(n_clusters=k) # default linkage is ward
+        agg = AgglomerativeClustering(n_clusters=k, linkage="ward") 
         clusters = agg.fit_predict(X_std) # save the predictions to the cluster variable
         
         # display success message if model has been run
         if clusters is not None:
-            st.success("The hierarchical model has been succesfully fit to the data.")
+            st.success("The hierarchical model has been successfully fit to the data.")
             
     # step 4: visualize the results using PCA
         
@@ -506,13 +510,13 @@ if data_ready: # checks if data is ready from previous steps
     # allow option for user to interpret the principle components
     if st.toggle("Need help interpreting these principle components? Click here for explanation."):
         st.write("The first principle component...")
-        # COMPLETE ANALYSIS
     
     st.markdown("""
     <div style="background-color: #f5f5f5; padding: 15px; border-radius: 6px; border: 1px solid #ccc">
     💭 <b>Thought Question:</b> Are the clusters created by this unsupervised learning algorithm well separated?
     </div>
-    """, unsafe_allow_html=True)    
+    """, unsafe_allow_html=True)  
+    st.write("") # verticle space following box  
 
     # step 5: analyze model performance
     st.subheader("Step 5: Analyze Model Performance")
@@ -561,13 +565,14 @@ if data_ready: # checks if data is ready from previous steps
             # ask user to set the best k by visually inspecting the plot
             best_k = st.number_input("Visually inspect the plot then enter the best 'k':", min_k, max_k)
             # display success message for best k
-            st.success(f"The best 'k' based on the WCSS is **{best_k}**")
+            st.success(f"The best 'k' based on the WCSS is **{best_k}.**")
+            
         else: # option == "Silhouette"
             # explain the use of silhouette scores
             st.markdown("""
             **Option 2: Silhouette Score** \n
-            Silhouette scores measure the similarity of an observation to its own cluster compared to other clusters,
-            in which a higher score indicated better fit. 
+            Silhouette scores measure how similar an observation is to its own cluster compared to other clusters,
+            in which a higher score indicates better fit. 
             A silhouette plot calculates the average silhouette score of all observations
             and tracks this average across different 'k'.
             """)
@@ -586,9 +591,6 @@ if data_ready: # checks if data is ready from previous steps
         kmeans_tuned = KMeans(n_clusters=k, max_iter=max_iter, random_state=42) # create model with specified iterations
         clusters_tuned = kmeans_tuned.fit_predict(X_std) # fit model to data to create clusters
         
-        st.subheader("Step 3: Analyze Performance")
-        
-        
         
     else: # model_choice == 'hierarchical'
         # explain hyperparameter options
@@ -598,21 +600,57 @@ if data_ready: # checks if data is ready from previous steps
         - **n_clusters:**
         """)
         
-        st.subheader("Step 1: Choose a Hyperparameter")
-        param = st.selectbox("Select a parameter to explore:", ("linkage", "n_clusters"))
+        # step 1: find the optimal number of clusters
+        st.subheader("Step 1: Find the Optimal Number of Clusters")
         
-        if param == "n_clusters":
-            pass
-            # explain the silhouette plot
-            # plot silhouette scores
-                
-        else: # if param == "linkage"
-            linkage_type = st.selectbox("Select a linkage type", ('ward', 'option2'))
-            # create model with the selected linkage
-            # fit model to data to create clusters
-            
-                
-        st.subheader("Step 2: Analyze Performance")
+        st.write("**Purpose:** Testing multiple 'k' values allows us to find the optimal number of clusters for the data.")
+        # allow user to pick a range of k-values to explore
+        min_k, max_k = st.slider("Select a range of 'k' values to test:", 1, 20, (1,10), step=1)
+        k_range = range(min_k, max_k + 1)
+        
+        st.markdown("""
+        **Approach: Silhouette Score** \n
+        Silhouette scores measure how similar an observation is to its own cluster compared to other clusters,
+        in which a higher score indicates better fit. 
+        A silhouette plot calculates the average silhouette score of all observations
+        and tracks this average across different 'k'.
+        """)
+        # use function to display plot and return best k
+        best_k = sil_plot_kmeans(k_range, X_std) 
+        
+        # step 2: test alternate linkages
+        st.subheader("Step 2: Test Alternate Linkages")
+        st.markdown("""
+        **Linkage Options:**
+        - **Ward:** Minimizes variance within clusters (used above). Operates most similar to kMeans.
+        - **Complete:** Uses the maximum distance between any two observations in two clusters.
+        - **Single:** Uses the minimum distance between any two observations in two clusters. 
+        - **Average:** Uses the average of all pairwise distances between clusters. This is sometimes referred to as 'chaining' for its long clusters. 
+        """)
+        
+        # allow user to select linkage type
+        linkage_type = st.selectbox("Select a linkage type:", ("ward", "complete", "single", "average"))
+        
+        # create linkage matrix using chosen linkage methods
+        Z_tuned = linkage(X_std, method=linkage_type) 
+
+        # plot dendrogram in streamlit
+        fig, ax = plt.subplots(figsize=(20, 7))
+        dendrogram(Z_tuned, truncate_mode="lastp", labels=labels, ax=ax) # creates dendrogram with limited examples shown
+        ax.set_title("Hierarchical Clustering Dendrogram")
+        ax.set_ylabel("Distance")
+        st.pyplot(fig) # display figure
+        
+        # run agglomerative clustering using chosen linkage and best k
+        agg_tuned = AgglomerativeClustering(n_clusters=best_k, linkage=linkage_type) 
+        clusters_tuned = agg_tuned.fit_predict(X_std) # save the predictions to the cluster variable
+        
+        # visualize PCA results
+        graph_PCA(X_std, clusters_tuned)
+        
+        # calculate accuracy
+        accuracy_tuned = accuracy_score(y, clusters_tuned)
+        st.write(f"Accuracy Score: {accuracy_tuned * 100:.2f}%")
         
 else:
     # warning displays if data has not been split
