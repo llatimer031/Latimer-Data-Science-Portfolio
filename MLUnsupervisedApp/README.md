@@ -52,5 +52,9 @@ To launch locally:
 ## References:
 **Streamlit:** [Streamlit API Cheat Sheet](https://docs.streamlit.io/develop/quick-reference/cheat-sheet), [Streamlit Cloud](https://docs.streamlit.io/deploy/streamlit-community-cloud/deploy-your-app)
 
+**kMeans:** [SkiKit-Learn kMeans](https://scikit-learn.org/stable/modules/generated/sklearn.cluster.KMeans.html)
+
+**Hierarchical:** [SciKit-Learn Agglomerative](https://scikit-learn.org/stable/modules/generated/sklearn.cluster.AgglomerativeClustering.html), [SciPy Linkage](https://docs.scipy.org/doc/scipy/reference/generated/scipy.cluster.hierarchy.linkage.html), [SciPy Dendrogram](https://docs.scipy.org/doc/scipy/reference/generated/scipy.cluster.hierarchy.dendrogram.html)
+
 ## Visual Examples:
 
