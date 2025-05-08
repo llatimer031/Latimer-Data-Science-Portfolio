@@ -239,7 +239,7 @@ if data_source == "Upload CSV":
 # ----- option (b) choose from sample datasets ----- #
 else:
     # allow users to select which sample dataset they want to use
-    sample_data = st.sidebar.selectbox("Choose a sample dataset:", ['wine', 'breast cancer'])
+    sample_data = st.sidebar.selectbox("Choose a sample dataset:", ['breast cancer', 'wine'])
     
     if sample_data == 'wine':
         # load the digits dataset from sklearn
@@ -650,6 +650,7 @@ if data_ready: # checks if data is ready from previous steps
         **The first two components (used above) explain {two_components*100:.2f}\\% of the variance in the data.**\n
         In this scenario, we trade-off simplicity (the ability to plot in a 2D space) with information gain.
         As more components are added, the model becomes less simple but contains more information.
+        **Use the plot and widget below to explore this trade-off.**
         """)
         
         # use function to plot explained variance
@@ -663,7 +664,7 @@ if data_ready: # checks if data is ready from previous steps
             # allow user to select up to 10 features
             n_components = st.slider("Select a number of components to investigate:", 1, 10)
         
-        st.write(f"{n_components} component(s) explain {cum_var[n_components-1]:.2f}\\% of the total variance in the data.")
+        st.success(f"{n_components} component(s) explain {cum_var[n_components-1]:.2f}\\% of the total variance in the data.")
         
         
     st.markdown("""
@@ -718,7 +719,7 @@ if data_ready: # checks if data is ready from previous steps
             """)
             elbow_plot(k_range, X_std)
             # ask user to set the best k by visually inspecting the plot
-            best_k = st.number_input("Visually inspect the plot then enter the best 'k':", min_k, max_k)
+            best_k = st.number_input("Visually inspect the plot to find the elbow point then enter the best 'k':", min_k, max_k)
             # display success message for best k
             st.success(f"The best 'k' based on the WCSS is **{best_k}.**")
             
@@ -742,6 +743,13 @@ if data_ready: # checks if data is ready from previous steps
         
         # step 2: set max_iter to find the convergence point
         st.subheader("Step 2: Investigate Convergence")
+        
+        st.markdown("""
+        The kMean algorithm operates by initially choosing 'k' random centroids and assigning observations to each,
+        but then repeats this assignment step each iteration after calculating the new centroid. \n
+        **As a result,** assignments after the first iteration are often different then the tenth, for example. 
+        Reassignment should continue until each iteration no long produces any changes.
+        """)
         # allow user to input the number of iterations to run
         max_iter = st.number_input("Input a number of iterations to run:", 1, 10000)
 
@@ -758,33 +766,10 @@ if data_ready: # checks if data is ready from previous steps
         """, unsafe_allow_html=True)  
         st.write("") # verticle space following box 
         
-        # step 3: analyze performance
+        # step 3: analyze performance 
         st.subheader("Step 3: Analyze Performance")
-        st.markdown("""
-        ##### Performance Metrics
-        """)
-        
-        st.write("**i) Calculate an updated accuracy score**")
-        # calculate accuracy
-        accuracy_tuned = accuracy_score(y, clusters_tuned)
-        st.write(f"Accuracy Score: {accuracy_tuned:.2f}")
-        
-        st. write("**ii) Calculate an updated silhouette score**")
-        # calculate silhouette score
-        if best_k == 1: # check that k is not 1
-            st.error("Silhouette score is not available for one cluster.")
-        else: # calculate silhouette score if k>1
-            silhouette_tuned = silhouette_score(X_std, clusters_tuned)
-            st.write(f"Silhouette Score: {silhouette_tuned: .2f}")
-        
-        st.markdown("""
-        <div style="background-color: #f5f5f5; padding: 15px; border-radius: 6px; border: 1px solid #ccc">
-        💭 <b>Thought Question:</b> Did making parameter adjustments improve the performance metrics from your initial model? 
-        Which had a larger impact, number of clusters or number of iterations?
-        </div>
-        """, unsafe_allow_html=True)  
-        st.write("") # verticle space following box 
-    
+        # performance metrics analyzed outside if-loop
+
         
     else: # model_choice == 'hierarchical'
         # explain hyperparameter options
@@ -819,6 +804,8 @@ if data_ready: # checks if data is ready from previous steps
         ax.set_xlabel("Labels")
         st.pyplot(fig) # display figure
         
+        st.write("**Check [performance scores](#performance-metrics)**")
+        
         # step 2: find the optimal number of clusters
         st.subheader("Step 2: Find the Optimal Number of Clusters")
         
@@ -837,33 +824,64 @@ if data_ready: # checks if data is ready from previous steps
         # use function to display plot and return best k
         best_k = sil_plot_hier(k_range, X_std, linkage=linkage_type) 
         
-        # step 3: analyze performance
+        # step 3: analyze performance 
         st.subheader("Step 3: Analyze Performance")
+        
         # run agglomerative clustering using chosen linkage and best_k
         agg_tuned = AgglomerativeClustering(n_clusters=best_k, linkage=linkage_type) 
         clusters_tuned = agg_tuned.fit_predict(X_std) # save the predictions to the cluster variable
-        
+
         st.write("With the chosen parameters, the predicted clusters look like:")
         # visualize PCA results
         graph_PCA(X_std, clusters_tuned)
         
+    # can be shown for moth models
+    st.markdown("""
+    ##### Performance Metrics
+    """)
+        
+    st.markdown("""
+    **i) Calculate an updated accuracy score:**  
+    For clustering methods, accuracy is a post-hoc evaluation method that compares predicted clusters to true labels. Scores range from 0–1, where a higher score represents a greater percentage of the data being correctly classified.
+
+    <span style='font-size: 0.85em; font-style: italic;'>
+    Note: Since labels do <em>not</em> have to be present during unsupervised learning, this metric is not always available.
+    </span>
+    """, unsafe_allow_html=True)
+    
+    # calculate accuracy
+    accuracy_tuned = accuracy_score(y, clusters_tuned)
+    st.write("") # vertical space needed for formatting
+    st.write(f"**Accuracy Score:** `{accuracy_tuned:.2f}`")
+        
+        
+    st.markdown("""
+    **ii) Calculate an updated silhouette score:** 
+    
+    Silhouette scores evaluate how well each data point fits in its assigned cluster compared to other cluster options. 
+    Scores range from -1 to 1, where higher values indicate that points are similar to their own cluster
+    and fit poorly in neighboring clusters.
+    """)
+    
+    # calculate silhouette score
+    if best_k == 1: # check that k is not 1
+        st.error("Silhouette score is not available for one cluster.")
+    else: # calculate silhouette score if k>1
+        silhouette_tuned = silhouette_score(X_std, clusters_tuned)
+        st.write(f"**Silhouette Score:** `{silhouette_tuned: .2f}`")
+        
+
+    if model_choice == "kMeans":
+        # insert final though question for kMeans
         st.markdown("""
-        ##### Performance Metrics
-        """)
-        
-        st. write("**i) Calculate an updated accuracy score**")
-        # calculate accuracy
-        accuracy_tuned = accuracy_score(y, clusters_tuned)
-        st.write(f"Accuracy Score: {accuracy_tuned:.2f}")
-        
-        st. write("**ii) Calculate an updated silhouette score**")
-        # calculate silhouette score
-        if best_k == 1: # check that k is not 1
-            st.error("Silhouette score is not available for one cluster.")
-        else: # calculate silhouette score if k>1
-            silhouette_tuned = silhouette_score(X_std, clusters_tuned)
-            st.write(f"Silhouette Score: {silhouette_tuned: .2f}")
-        
+        <div style="background-color: #f5f5f5; padding: 15px; border-radius: 6px; border: 1px solid #ccc">
+        💭 <b>Thought Question:</b> Did making parameter adjustments improve the performance metrics from your initial model? 
+        Which had a larger impact, number of clusters or number of iterations?
+        </div>
+        """, unsafe_allow_html=True)  
+        st.write("") # verticle space following box 
+    else:
+        # insert final thought question for hierarchical
         st.markdown("""
         <div style="background-color: #f5f5f5; padding: 15px; border-radius: 6px; border: 1px solid #ccc">
         💭 <b>Thought Question:</b> Which combination of linkage and 'k' yields the best performance values? 
@@ -871,8 +889,6 @@ if data_ready: # checks if data is ready from previous steps
         </div>
         """, unsafe_allow_html=True)  
         st.write("") # verticle space following box 
-    
-        
 else:
     # warning displays if data has not been split
     st.warning("Data is not ready for this step.")
