@@ -17,8 +17,7 @@ in which hidden structures are revealed without the use of labels. Both methods 
 5. [Visual Examples](#visual-examples)
 
 ## Usage:
-To launch via Streamlit cloud:
-(Insert Link)
+To launch via Streamlit cloud: https://latimer-data-science-portfolio-5jrgfskmjrtakzlvpjiruo.streamlit.app/ 
 
 To launch locally:
 1. **Clone the repository:**
