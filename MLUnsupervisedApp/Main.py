@@ -475,9 +475,9 @@ else: # elif sample data set used (not custom CSV)
         y = df['target']  # target column
 
         if sample_data == 'wine':
-            st.write(f"**Label:** Cultivar Class")
+            st.write(f"**Label:** Cultivar Class (Class 0, Class 1)")
         else: # if sample_data == 'breast cancer'
-            st.write(f"**Label:** Diagnosis")
+            st.write(f"**Label:** Diagnosis (0=Malignant, 1=Benign)")
             
         st.write(f"**Features:** {list(X.columns)}")
         st.write("**Note:** The label column will *not* be used during the clustering algorithm itself, but it may be used later to check the accuracy of the clusters produced.")
@@ -608,15 +608,15 @@ if data_ready: # checks if data is ready from previous steps
     st.subheader("Step 4: Analyze Model Performance")
     
     # look at visual representation of clusters on PCA graph
-    st.write("**i) Visualize Clusters using Principle Component Analysis (PCA)**")
+    st.write("**i) Visualize Clusters using Principal Component Analysis (PCA)**")
     
     st.markdown("""
         **Purpose:** When data is high-dimensional, it can become difficult to both analyze and interpret.
         This event is called the *curse of dimensionality,* a problem in which PCA aims to solve
         by reducing the data to a specified number of dimensions.\n
-        **Action:** Combine features into principle components that capture maximum variance in the data.
+        **Action:** Combine features into principal components that capture maximum variance in the data.
         """)
-    # use defined function to graph clusters on principle components
+    # use defined function to graph clusters on principal components
     col1, col2 = st.columns(2)
     with col1:
         # add centered label using markdown
@@ -626,12 +626,12 @@ if data_ready: # checks if data is ready from previous steps
         st.markdown("<h4 style='text-align: center;'>True Labels</h4>", unsafe_allow_html=True)
         graph_PCA(X_std, y)
     
-    # allow option for user to interpret the principle components
-    if st.toggle("Need help interpreting these principle components? Click here for explanation."):
+    # allow option for user to interpret the principal components
+    with st.expander("Learn more about these principal components."):
         
         st.markdown("""
         When PCA is used to reduce the dimension of data, 
-        each principle component captures a certain percentage of variance in the data.
+        each principal component captures a certain percentage of variance in the data.
         """)
         
         # check number of features so pca does not fail if n_components is too large
