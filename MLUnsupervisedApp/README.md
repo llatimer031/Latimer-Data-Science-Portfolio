@@ -16,7 +16,7 @@ To launch via Streamlit cloud:
 To launch locally:
 1. **Clone the repository:**
    `git clone repository_url`
-2. **Ensure the proper dependencies are downloaded:**
+2. **Install dependencies:** Check the requirements.txt file to ensure the proper dependencies are downloaded.
    `pip install -r requirements.txt`
 3. **Navigate to the proper folder:** Open your terminal and move to the directory containing 'MLUnsupervisedApp'  
    `cd path/to/MLUnsupervisedApp`
