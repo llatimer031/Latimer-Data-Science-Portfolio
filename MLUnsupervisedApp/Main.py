@@ -8,12 +8,10 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
 
-# import machine learning packages
-from sklearn.model_selection import train_test_split
-from sklearn.metrics import accuracy_score, confusion_matrix
+# import general machine learning packages
+from sklearn.metrics import accuracy_score
 from sklearn.preprocessing import StandardScaler
-from sklearn.datasets import load_breast_cancer
-from sklearn.datasets import load_wine
+
 
 # import unsupervised learning packages
 from sklearn.cluster import KMeans
@@ -22,19 +20,23 @@ from scipy.cluster.hierarchy import linkage, dendrogram
 from sklearn.decomposition import PCA
 from sklearn.metrics import silhouette_score
 
+# import datasets
+from sklearn.datasets import load_breast_cancer
+from sklearn.datasets import load_wine
+
 # --------------- TITLE --------------- #
 
 # set up title, author, and description
-st.set_page_config(layout='centered')
+st.set_page_config(layout='wide')
 col1, col2 = st.columns([1,6]) # splits the page into three columned sections
 with col1: 
     # add image to first column
     st.image("https://raw.githubusercontent.com/llatimer031/Latimer-Data-Science-Portfolio/main/MLStreamlitApp/Images/streamlit-app.jpeg", width=175)
 with col2:
     # add title and other info to second column
-    #st.write("") # vertical space for formatting
-    #st.write("") # vertical space for formatting
-    #st.write("") # vertical space for formatting
+    st.write("") # vertical space for formatting
+    st.write("") # vertical space for formatting
+    st.write("") # vertical space for formatting
     st.title("(Un)Supervised Learning via Streamlit:")
     st.write("By: Lauren Latimer | GitHub: [llatimer031](https://github.com/llatimer031/Latimer-Data-Science-Portfolio/tree/main/MLStreamlitApp)")
     
@@ -237,10 +239,14 @@ else:
     sample_data = st.sidebar.selectbox("Choose a sample dataset:", ['wine', 'breast cancer'])
     
     if sample_data == 'wine':
-        # load the wine dataset from sklearn
+        # load the digits dataset from sklearn
         data = load_wine()
         df = pd.DataFrame(data.data, columns=data.feature_names)  
-        df['target'] = data.target  # Target variable (cultivar class)
+        df['target'] = data.target  # target variable (cultivar class)
+        df = df[df['target'].isin([0, 1])] # keep only first two classes
+        # reset index 
+        df.reset_index(drop=True, inplace=True)
+        
         feature_names = data.feature_names
         target_names = data.target_names
         
@@ -249,8 +255,9 @@ else:
         data = load_breast_cancer()
         df = pd.DataFrame(data.data, columns=data.feature_names)  
         df['target'] = data.target  # Target variable (diagnosis)
+        
         feature_names = data.feature_names
-        target_names = data.target_names
+        target_names = [data.target_names[i] for i in [0, 1]]
 
 # runs if data is in the df, whether it be from a CSV or sample data
 if df is not None:
@@ -379,8 +386,9 @@ if data_source == "Upload CSV":
         # allow user to select a label among the columns
         label = st.selectbox("Select a label to **exclude**:", df.columns)
         if label: # checks that a y variable has been chosen by user
-            y = df[label] # creates variable y by sub setting column from df
-            st.dataframe(y.head()) # preview the first few rows of the y variable
+            # convert y variable to numeric codes if not already
+            y = df[label].astype('category').cat.codes
+            st.dataframe(y.head()) 
 
         # step 3: specify columns to use as features
         st.subheader("Step 2: Choose Features")
@@ -395,11 +403,11 @@ if data_source == "Upload CSV":
             
         # allow user to select features from the numeric columns
         features = st.multiselect("Select features to **include**:", numeric_columns)
-        if features: # ensures feature columns have been selected by user
+        if len(features) >= 2: # ensures feature columns have been selected by user
             X = df[features] # create df X by subsetting the selected feature columns from the main df
             st.dataframe(X.head()) # displays first few rows of X df
         else: # no feature variables have been selected
-            st.warning("Please select at least one feature.")
+            st.warning("Please select at least two features.")
         
         if 'X' in locals() and 'y' in locals(): # ensures X and y variables have been selected
             data_ready = True # mark data as ready to continue
