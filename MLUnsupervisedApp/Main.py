@@ -762,6 +762,7 @@ if data_ready: # checks if data is ready from previous steps
         st.markdown("""
         <div style="background-color: #f5f5f5; padding: 15px; border-radius: 6px; border: 1px solid #ccc">
         💭 <b>Thought Question:</b> Are you able to identify any observations switching clusters between iterations?
+        Where are they usually located on the plot?
         </div>
         """, unsafe_allow_html=True)  
         st.write("") # verticle space following box 
