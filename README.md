@@ -13,17 +13,11 @@ The projects in this portfolio will demonstrate skills across several stages of 
 
 ## Table of Contents:
 1. [Overview](#overview)
-   
-2. [Portfolio at a Glance](#portfolio-at-a-glance)
-   
-   2.1. [Basic Streamlit App](#basic-streamlit-app)
-   
-   2.2. [Tidy Data Project](#tidy-data-project)
-   
-   2.3. [Supervised Learning App](#supervised-learning-streamlit-app)
-   
-   2.4. [Uupervised Learning App](#unsupervised-learning-streamlit-app)
-
+2. [Portfolio at a Glance](#portfolio-at-a-glance)   
+   - [Basic Streamlit App](#basic-streamlit-app)
+   - [Tidy Data Project](#tidy-data-project)
+   - [Supervised Learning App](#supervised-learning-streamlit-app)
+   - [Uupervised Learning App](#unsupervised-learning-streamlit-app)
 3. [Next Steps](#next-steps)
    
 ## Portfolio at a Glance:
