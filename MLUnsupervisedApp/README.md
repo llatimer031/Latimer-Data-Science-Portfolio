@@ -61,4 +61,19 @@ To launch locally:
 **Hierarchical:** [SciKit-Learn Agglomerative](https://scikit-learn.org/stable/modules/generated/sklearn.cluster.AgglomerativeClustering.html), [SciPy Linkage](https://docs.scipy.org/doc/scipy/reference/generated/scipy.cluster.hierarchy.linkage.html), [SciPy Dendrogram](https://docs.scipy.org/doc/scipy/reference/generated/scipy.cluster.hierarchy.dendrogram.html)
 
 ## Visual Examples:
+Users should find the following visualizations when running the app:
 
+**Dendrogram (Hierarchical Clustering)**
+![dendrogram](Images/dendrogram-plot.png)
+
+**Cluster Mappings on 2D PCA Plots**
+![clusters](Images/PCA-plots.png)
+
+**Explained Variance Plot (PCA)**
+![explained variance](Images/explained-variance-plot.png)
+
+**Elbow Plot**
+![elbow](Images/elbow-plot.png)
+
+**Silhouette Scores Plot**
+![silhouette](Images/silhouette-plot.png)
