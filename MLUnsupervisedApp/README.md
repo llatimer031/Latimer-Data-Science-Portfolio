@@ -50,6 +50,8 @@ To launch locally:
 
 
 ## References:
+**Data:** [SciKit-Learn load_wine](https://scikit-learn.org/stable/modules/generated/sklearn.datasets.load_wine.html), [SciKit-Learn load_breast_cancer](https://scikit-learn.org/stable/modules/generated/sklearn.datasets.load_breast_cancer.html)
+
 **Streamlit:** [Streamlit API Cheat Sheet](https://docs.streamlit.io/develop/quick-reference/cheat-sheet), [Streamlit Cloud](https://docs.streamlit.io/deploy/streamlit-community-cloud/deploy-your-app)
 
 **kMeans:** [SkiKit-Learn kMeans](https://scikit-learn.org/stable/modules/generated/sklearn.cluster.KMeans.html)
