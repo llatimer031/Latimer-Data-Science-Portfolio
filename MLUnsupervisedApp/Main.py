@@ -569,7 +569,7 @@ if data_ready: # checks if data is ready from previous steps
         dendrogram(Z, truncate_mode="lastp", labels=labels, ax=ax) # creates dendrogram with limited examples shown
         ax.set_title("Hierarchical Clustering Dendrogram (Ward Linkage)")
         ax.set_ylabel("Distance")
-        ax.set_xlabel("Lables")
+        ax.set_xlabel("Labels")
         st.pyplot(fig) # display figure
         
         # ii.) assign k number of clusters using the dendrogram
