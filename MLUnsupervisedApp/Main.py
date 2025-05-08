@@ -25,16 +25,16 @@ from sklearn.metrics import silhouette_score
 # --------------- TITLE --------------- #
 
 # set up title, author, and description
-st.set_page_config(layout='wide')
+st.set_page_config(layout='centered')
 col1, col2 = st.columns([1,6]) # splits the page into three columned sections
 with col1: 
     # add image to first column
     st.image("https://raw.githubusercontent.com/llatimer031/Latimer-Data-Science-Portfolio/main/MLStreamlitApp/Images/streamlit-app.jpeg", width=175)
 with col2:
     # add title and other info to second column
-    st.write("") # vertical space for formatting
-    st.write("") # vertical space for formatting
-    st.write("") # vertical space for formatting
+    #st.write("") # vertical space for formatting
+    #st.write("") # vertical space for formatting
+    #st.write("") # vertical space for formatting
     st.title("(Un)Supervised Learning via Streamlit:")
     st.write("By: Lauren Latimer | GitHub: [llatimer031](https://github.com/llatimer031/Latimer-Data-Science-Portfolio/tree/main/MLStreamlitApp)")
     
@@ -70,7 +70,34 @@ def graph_PCA(X_std, clusters):
     ax.grid(True)
 
     st.pyplot(fig) #display plot
+    
+# function to plot explained variance in PCA
+def explained_var_plot(pca):
+    
+    explained = pca.explained_variance_ratio_*100
+    components = np.arange(1,len(explained)+1)
+    cumulative = np.cumsum(explained)
+    
+    # Create the combined plot
+    fig, ax = plt.subplots(figsize=(8, 6))
 
+    # Bar plot for individual variance explained
+    bar_color = 'steelblue'
+    ax.bar(components, explained, color=bar_color, alpha=0.8, label='Individual Variance')
+    ax.set_xlabel('Principal Component')
+    ax.set_ylabel('Individual Variance Explained (%)')
+    ax.set_title('Explained Variance per Principal Component')
+    #ax.tick_params(axis='y', labelcolor=bar_color)
+    ax.set_xticks(components)
+    ax.set_xticklabels([f"PC{i}" for i in components])
+
+    # Add percentage labels on each bar
+    for i, v in enumerate(explained):
+        ax.text(components[i], v + 1, f"{v:.1f}%", ha='center', va='bottom', fontsize=10, color='black')
+
+    st.pyplot(fig)
+    return cumulative
+    
 # function used to find the elbow point in WCSS scores across k-values 
 def elbow_plot(k_range, X_std):
     wcss = [] # initialize empty list to store WCSS values
@@ -574,11 +601,44 @@ if data_ready: # checks if data is ready from previous steps
     
     # allow option for user to interpret the principle components
     if st.toggle("Need help interpreting these principle components? Click here for explanation."):
-        st.write("The first principle component...")
-    
+        st.markdown("""
+        When PCA is used to reduce the dimension of data, 
+        each principle component captures a certain percentage of variance in the data.
+        """)
+        # check number of features so pca does not fail if n_components is too large
+        num_features = X_std.shape[1]
+        if num_features < 10:
+            # run with max number of components
+            pca = PCA(n_components=num_features).fit(X_std) 
+        else:
+            # run with only 10 components
+            pca = PCA(n_components=10).fit(X_std)
+            
+        exp_var = pca.explained_variance_ratio_ # extract explained variance
+        two_components = exp_var[0] + exp_var[1] # calculate cumulative variance for first two components
+        st.markdown(f"""
+        **The first two components (used above) explain {two_components*100:.2f}\\% of the variance in the data.**\n
+        In this scenario, we trade-off simplicity (the ability to plot in a 2D space) with information gain.
+        As more components are added, the model becomes less simple but contains more information.
+        """)
+        # use function to plot explained variance
+        cum_var = explained_var_plot(pca)
+        
+        # allow user to investigate how variance increases
+        if num_features < 10:
+            # limit slider to the max number of features if <10
+            n_components = st.slider("Select a number of components to investigate:", 1, num_features)
+        else:
+            # allow user to select up to 10 features
+            n_components = st.slider("Select a number of components to investigate:", 1, 10)
+        
+        st.write(f"{n_components} component(s) explain {cum_var[n_components-1]:.2f}\\% of the total variance in the data.")
+        
+        
     st.markdown("""
     <div style="background-color: #f5f5f5; padding: 15px; border-radius: 6px; border: 1px solid #ccc">
     💭 <b>Thought Question:</b> Are the clusters created by this unsupervised learning algorithm well separated?
+    Do they resemble the true clusters?
     </div>
     """, unsafe_allow_html=True)  
     st.write("") # vertical space following box  
@@ -679,8 +739,11 @@ if data_ready: # checks if data is ready from previous steps
         
         st. write("**ii) Calculate an updated silhouette score**")
         # calculate silhouette score
-        silhouette_tuned = silhouette_score(X_std, clusters_tuned)
-        st.write(f"Silhouette Score: {silhouette_tuned: .2f}")
+        if best_k == 1:
+            st.error("Silhouette score is not available for one cluster.")
+        else:
+            silhouette_tuned = silhouette_score(X_std, clusters_tuned)
+            st.write(f"Silhouette Score: {silhouette_tuned: .2f}")
         
         st.markdown("""
         <div style="background-color: #f5f5f5; padding: 15px; border-radius: 6px; border: 1px solid #ccc">
@@ -763,8 +826,11 @@ if data_ready: # checks if data is ready from previous steps
         
         st. write("**ii) Calculate an updated silhouette score**")
         # calculate silhouette score
-        silhouette_tuned = silhouette_score(X_std, clusters_tuned)
-        st.write(f"Silhouette Score: {silhouette_tuned: .2f}")
+        if best_k == 1:
+            st.error("Silhouette score is not available for one cluster.")
+        else:
+            silhouette_tuned = silhouette_score(X_std, clusters_tuned)
+            st.write(f"Silhouette Score: {silhouette_tuned: .2f}")
         
         st.markdown("""
         <div style="background-color: #f5f5f5; padding: 15px; border-radius: 6px; border: 1px solid #ccc">
