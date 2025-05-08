@@ -5,6 +5,13 @@
 
 **Purpose:** Much of the data analysis process is spent in the cleaning stages, as it neccessary to ensure that the data can be further tested and analyzed. Thus, it is important that cleaning techniques are done as effectively and efficiently as possible to make for smoother analysis down the road. Tidy data approaches, like the ones explored in this project, ensure that this process is completed. 
 
+## Table of Contents:
+1. [Project Overview](#project-overview)
+2. [Usage](#usage)
+3. [Features](#features)
+4. [References](#references)
+5. [Visual Examples](#visual-examples)
+
 ## Usage:
 1. **Esnure the proper requirements are installed:**
 - Python (version 3.12 or greater recommended)
