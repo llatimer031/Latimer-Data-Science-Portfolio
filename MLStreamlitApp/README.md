@@ -48,9 +48,9 @@ To launch locally:
   - Use the selectbox to choose a distance metric.
 
 ## References:
-**Streamlit:** [Streamlit API Cheat Sheet](https://docs.streamlit.io/develop/quick-reference/cheat-sheet), [Streamlit Cloud](https://docs.streamlit.io/deploy/streamlit-community-cloud/deploy-your-app)
+**Data:** [Seaborn's Penguin Data](https://www.kaggle.com/code/tirendazacademy/penguin-dataset-data-visualization-with-seaborn), [Seaborn's Titanic Data](https://www.kaggle.com/code/roblexnana/data-viz-tutorial-with-titanic-and-seaborn)
 
-**Overview:** [Logistic Regression vs. kNN](https://www.geeksforgeeks.org/logistic-regression-vs-k-nearest-neighbors-in-machine-learning/), [Hyperparameter Tuning](https://www.geeksforgeeks.org/hyperparameter-tuning/)
+**Streamlit:** [Streamlit API Cheat Sheet](https://docs.streamlit.io/develop/quick-reference/cheat-sheet), [Streamlit Cloud](https://docs.streamlit.io/deploy/streamlit-community-cloud/deploy-your-app)
 
 **Logistic Regression:** [SciKit-Learn Documentation](https://scikit-learn.org/stable/modules/generated/sklearn.linear_model.LogisticRegression.html), [Penalty Types](https://www.statisticshowto.com/regularization/)
 
