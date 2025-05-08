@@ -1,4 +1,4 @@
-# --------------- PACKAGES --------------- #
+# -------------------- PACKAGES -------------------- #
 
 # import streamlit
 import streamlit as st
@@ -24,7 +24,7 @@ from sklearn.metrics import silhouette_score
 from sklearn.datasets import load_breast_cancer
 from sklearn.datasets import load_wine
 
-# --------------- TITLE --------------- #
+# -------------------- TITLE --------------------- #
 
 # set up title, author, and description
 st.set_page_config(layout='wide')
@@ -42,19 +42,22 @@ with col2:
     
 st.header("An interactive walkthrough data processing, model selection, and parameter tuning for clustering models.")
 
-# --------------- FUNCTIONS --------------- #
+# --------------------- FUNCTIONS --------------------- #
 
 # function that will map clusters onto 2D space using PCA
 def graph_PCA(X_std, clusters):
+    
+    # reduce data to 2D with PCA
     pca = PCA(n_components=2)
     X_pca = pca.fit_transform(X_std)
 
-    unique_clusters = np.unique(clusters)
-    colors = plt.cm.get_cmap('tab10', len(unique_clusters))  # Up to 10 distinct colors
+    # get number of clusters and assign a color to each
+    n_clusters = np.unique(clusters)
+    colors = plt.cm.get_cmap('tab20', len(n_clusters))  # up to 10 distinct colors
 
     fig, ax = plt.subplots(figsize=(8, 6))
 
-    for i, cluster_label in enumerate(unique_clusters):
+    for i, cluster_label in enumerate(n_clusters):
         ax.scatter(
             X_pca[clusters == cluster_label, 0],
             X_pca[clusters == cluster_label, 1],
@@ -202,7 +205,7 @@ def accuracy_message(accuracy):
             - **Label Mismatch:** The cluster labels created by the model are arbitrary, and may not match the true labels.
                 - For example, if you have a binary label and an accuracy score of 0%, that indicates that each of the observations are correctly grouped, but the labels are simply swapped. 
             """)
-# --------------- SIDEBAR --------------- #
+# --------------------- SIDEBAR --------------------- #
 
 # create sidebar to customize data and model options
 st.sidebar.header("Data Options")
@@ -211,7 +214,7 @@ st.sidebar.header("Data Options")
 data_source = st.sidebar.radio("Choose a data source:",
     ("Use Sample Dataset", "Upload CSV"))
     
-# option (a) upload a CSV file
+# ------ option (a) upload a CSV file ----- #
 if data_source == "Upload CSV":
     st.sidebar.markdown("""
     **Note:** While unsupervised learning algorithms do not use labeled data to build the model itself,
@@ -233,7 +236,7 @@ if data_source == "Upload CSV":
         # set python dataframe to None
         df = None 
 
-# option (b) choose from sample datasets
+# ----- option (b) choose from sample datasets ----- #
 else:
     # allow users to select which sample dataset they want to use
     sample_data = st.sidebar.selectbox("Choose a sample dataset:", ['wine', 'breast cancer'])
@@ -247,6 +250,7 @@ else:
         # reset index 
         df.reset_index(drop=True, inplace=True)
         
+        # set feature and target names
         feature_names = data.feature_names
         target_names = data.target_names
         
@@ -256,6 +260,7 @@ else:
         df = pd.DataFrame(data.data, columns=data.feature_names)  
         df['target'] = data.target  # Target variable (diagnosis)
         
+        # set feature and target names
         feature_names = data.feature_names
         target_names = [data.target_names[i] for i in [0, 1]]
 
@@ -264,13 +269,16 @@ if df is not None:
     # add basic file information to sidebar
     st.sidebar.subheader("File Information")
     original_dim = df.shape # gets dimensions of original df
+    # display dimensions in sidebar
     st.sidebar.write("Number of Rows:", original_dim[0])
     st.sidebar.write("Number of Columns:", original_dim[1])
 
     # show missing values in each column
     st.sidebar.subheader("Missing Values")
+    # calculate how many missing values are in each column
     missing_values = pd.DataFrame(df.isnull().sum(), columns=["Missing Values"]).reset_index()
     missing_values.columns = ["Column", "Missing Values"]
+    # display dataframe in sidebar
     st.sidebar.dataframe(missing_values)
 
 # --------------- MAIN PAGE --------------- #
@@ -282,7 +290,7 @@ st.divider() # horizontal separator
 # for an uploaded csv, allow the user to perform custom processing and variable selection
 if data_source == "Upload CSV":
     
-    # PART 1: DATA PROCESSING
+    # ----- PART 1: DATA PROCESSING ------#
     st.header("Part 1: Processing the Data")
 
     data_processed = False # initialize as false to check when processing is complete
@@ -301,8 +309,9 @@ if data_source == "Upload CSV":
         st.write("Below is a preview of your chosen dataset:")
         st.dataframe(df.head())
     
-        # step 1: include only variables of choice
+        # step 1: include only variables of choice ##
         st.subheader("Step 1: Filter Columns")
+        
         # explain purpose of removing irrelevant or unhelpful variables
         st.markdown("""
         **Purpose:** Some columns may not contain helpful information, especially if many of its observations are missing values.\n
@@ -319,8 +328,9 @@ if data_source == "Upload CSV":
         else:
             st.warning("No columns were selected for removal. Select a column *or* proceed without filtering.")
     
-        # step 2: remove missing values
+        # step 2: remove missing values ##
         st.subheader("Step 2: Handle Missing Values")
+        
         # explain purpose of removing missing values
         st.markdown("""
         **Purpose:** The unsupervised learning algorithms used in this app require a dataset without missing values.\n
@@ -329,12 +339,12 @@ if data_source == "Upload CSV":
         """)
         
         df = df.dropna() # remove rows with missing values
-        new_dim = df.shape # get dimensions of new df, after removing incomplete rows
+        new_dim = df.shape # get dimensions of new df (after removing incomplete rows)
         incomplete_rows = original_dim[0] - new_dim[0] # calculate how many rows were removed
         
         st.success(f"{incomplete_rows} incomplete observations were successfully dropped.")
-    
-        # step 3: encode variables
+        
+        # step 3: encode variables 
         st.subheader("Step 3: Encode Categorical Variables")
         # explain purpose of encoding variables
         st.markdown("""
@@ -360,6 +370,7 @@ if data_source == "Upload CSV":
                 
         else: # no categorical columns
             st.success("This dataset contains no categorical columns. Proceed without encoding.")
+            
         data_processed = True # mark data as ready to continue
     
     else: # df does not exist or is empty
@@ -367,7 +378,7 @@ if data_source == "Upload CSV":
 
     st.divider()
 
-    # PART 2: VARIABLE SELECTION
+    # ------ PART 2: VARIABLE SELECTION ----- #
     st.header("Part 2: Variable Selection") 
 
     data_ready = False # initialize as false to check when data is ready to continue to model training
@@ -383,6 +394,7 @@ if data_source == "Upload CSV":
         this choice can be used later to check the accuracy of the clusters produced. 
         Binary labels are recommended for optimal compatibility with the performance metrics in this app.
         """)
+        
         # allow user to select a label among the columns
         label = st.selectbox("Select a label to **exclude**:", df.columns)
         if label: # checks that a y variable has been chosen by user
@@ -396,15 +408,18 @@ if data_source == "Upload CSV":
         st.markdown("""
         **Features:** Please select numeric or encoded categorical variables for the model to use during clustering. 
         """)
-        # limit feature selection to viable data types
+        
+        # limit feature selection to viable numeric data types
         numeric_columns = df.select_dtypes(include=['int64', 'float64', 'int32', 'float32', 'bool']).columns.tolist() # extracts numeric cols
         if label in numeric_columns:
-            numeric_columns.remove(label) # ensures that label cannot be chosen as feature
+            # ensure that label cannot be chosen as a feature
+            numeric_columns.remove(label) 
             
         # allow user to select features from the numeric columns
         features = st.multiselect("Select features to **include**:", numeric_columns)
         if len(features) >= 2: # ensures feature columns have been selected by user
-            X = df[features] # create df X by subsetting the selected feature columns from the main df
+            # subset features
+            X = df[features] 
             st.dataframe(X.head()) # displays first few rows of X df
         else: # no feature variables have been selected
             st.warning("Please select at least two features.")
@@ -420,7 +435,7 @@ if data_source == "Upload CSV":
 # for a sample dataset, the app processes the data and selected variables automatically
 else: # elif sample data set used (not custom CSV)
     
-    # PART 1: DATA PROCESSING
+    # ----- PART 1: DATA PROCESSING ----- #
     st.header("Part 1: Processing the Data")
 
     data_processed = False # initialize as false to check when pre processing is complete
@@ -446,7 +461,7 @@ else: # elif sample data set used (not custom CSV)
 
     st.divider()
 
-    # PART 2: VARIABLE SELECTION
+    # ----- PART 2: VARIABLE SELECTION ----- #
     st.header("Part 2: Variable Selection") 
 
     data_ready = False # initialize as false to check when data is ready to continue to modeling stages
@@ -477,7 +492,7 @@ st.divider()
 
 # ----- ALL DATASETS ----- #
 
-# PART 3: FIT MODEL
+# ----- PART 3: FIT MODEL ----- #
 st.header("Part 3: Fit a Clustering Model")
 
 if data_ready: # checks if data is ready from previous steps
@@ -493,9 +508,11 @@ if data_ready: # checks if data is ready from previous steps
     **Action:** Standardize the features (mean = 0, standard deviation = 1) and apply to the data. \n  
     """)
     
+    # fit data to scaler
     scaler = StandardScaler()
-    X_std = scaler.fit_transform(X)
+    X_std = scaler.fit_transform(X) 
     
+    # display success message if data has been scaled
     if X_std is not None:
         st.success("The data has been successfully scaled.")
         
@@ -525,7 +542,8 @@ if data_ready: # checks if data is ready from previous steps
         - Repeat until stopping criteria is met
         """)
 
-        kmeans = KMeans(n_clusters=k, random_state=42) # run kMeans algorithm
+        # run kmeans algorithm using k clusters
+        kmeans = KMeans(n_clusters=k, random_state=42) 
         clusters = kmeans.fit_predict(X_std) # assigns predictions to clusters variable
         
         # displays success message if model has been run
@@ -542,7 +560,8 @@ if data_ready: # checks if data is ready from previous steps
         # i.) build a dendrogram
         st.write("**i) Building a Hierarchical Tree:** Merge clusters until only one remains using ward linkage [(more info on linkage types here)](#step-1-find-the-best-linkage-method).")
         
-        Z = linkage(X_std, method="ward") # will create linkage matrix using ward linkage
+        #create linkage matrix using ward linkage
+        Z = linkage(X_std, method="ward") 
         labels = y.to_list() # y is the label selected earlier
 
         # plot dendrogram in streamlit
@@ -570,14 +589,14 @@ if data_ready: # checks if data is ready from previous steps
         """, unsafe_allow_html=True)
         st.write("") # add vertical space after box
 
-        
         # iii) run the agglomerative clustering algorithm to fit the model
         st.markdown("""
         **iii) Fitting the Model:**
         Agglomerative clustering with the same linkage method will produce integer labels for the dataframe.
         """)
         
-        agg = AgglomerativeClustering(n_clusters=k, linkage="ward") 
+        # fit model using specified k and default linkage (ward)
+        agg = AgglomerativeClustering(n_clusters=k, linkage="ward")  
         clusters = agg.fit_predict(X_std) # save the predictions to the cluster variable
         
         # display success message if model has been run
@@ -609,10 +628,12 @@ if data_ready: # checks if data is ready from previous steps
     
     # allow option for user to interpret the principle components
     if st.toggle("Need help interpreting these principle components? Click here for explanation."):
+        
         st.markdown("""
         When PCA is used to reduce the dimension of data, 
         each principle component captures a certain percentage of variance in the data.
         """)
+        
         # check number of features so pca does not fail if n_components is too large
         num_features = X_std.shape[1]
         if num_features < 10:
@@ -624,11 +645,13 @@ if data_ready: # checks if data is ready from previous steps
             
         exp_var = pca.explained_variance_ratio_ # extract explained variance
         two_components = exp_var[0] + exp_var[1] # calculate cumulative variance for first two components
+        
         st.markdown(f"""
         **The first two components (used above) explain {two_components*100:.2f}\\% of the variance in the data.**\n
         In this scenario, we trade-off simplicity (the ability to plot in a 2D space) with information gain.
         As more components are added, the model becomes less simple but contains more information.
         """)
+        
         # use function to plot explained variance
         cum_var = explained_var_plot(pca)
         
@@ -657,11 +680,12 @@ if data_ready: # checks if data is ready from previous steps
     # import accuracy score to calculate the percentage of data points correctly predicted
     accuracy = accuracy_score(y, clusters)
     st.write(f"Accuracy Score: {accuracy:.2f}")
+    # call function to display message
     accuracy_message(accuracy)
     
     st.divider()
 
-    # PART 4: HYPERPARAMETER TUNING
+    # ----- PART 4: HYPERPARAMETER TUNING ----- #
     st.header("Part 4: Hyperparameter Tuning")
     
     st.write("**Overview:** Fine tuning a model helps to find optimal hyperparameters to maximize accuracy and other performance indicators.")
@@ -747,9 +771,9 @@ if data_ready: # checks if data is ready from previous steps
         
         st. write("**ii) Calculate an updated silhouette score**")
         # calculate silhouette score
-        if best_k == 1:
+        if best_k == 1: # check that k is not 1
             st.error("Silhouette score is not available for one cluster.")
-        else:
+        else: # calculate silhouette score if k>1
             silhouette_tuned = silhouette_score(X_std, clusters_tuned)
             st.write(f"Silhouette Score: {silhouette_tuned: .2f}")
         
@@ -834,9 +858,9 @@ if data_ready: # checks if data is ready from previous steps
         
         st. write("**ii) Calculate an updated silhouette score**")
         # calculate silhouette score
-        if best_k == 1:
+        if best_k == 1: # check that k is not 1
             st.error("Silhouette score is not available for one cluster.")
-        else:
+        else: # calculate silhouette score if k>1
             silhouette_tuned = silhouette_score(X_std, clusters_tuned)
             st.write(f"Silhouette Score: {silhouette_tuned: .2f}")
         
