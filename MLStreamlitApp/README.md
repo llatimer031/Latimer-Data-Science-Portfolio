@@ -9,6 +9,13 @@ This application provides an interactive walkthrough to training and evaluating 
 
 Logistic regression and kNN are both commonly used as classification models, however, there are notable differences that can make each model more suitable to given scenarios. This interactive app will allow users to explore datasets, tidy processes, and hyperparameters to evaluate how each model performs in different settings. 
 
+## Table of Contents:
+1. [Project Overview](#project-overview)
+2. [Usage](#usage)
+3. [App Features](#app-features)
+4. [References](#references)
+5. [Visual Examples](#visual-examples)
+
 ## Usage:
 To launch via Streamlit cloud:
 https://latimer-data-science-portfolio-yatfbhmmaejgkactjbctyf.streamlit.app/
