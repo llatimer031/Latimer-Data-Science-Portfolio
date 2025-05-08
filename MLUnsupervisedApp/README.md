@@ -9,6 +9,13 @@ In the [MLStreamlitApp](https://github.com/llatimer031/Latimer-Data-Science-Port
 
 in which hidden structures are revealed without the use of labels. Both methods are commonly used and proven effective, though hierarchical clustering may provide a better starting point if you do not know an initial number of clusters to begin with.
 
+## Table of Contents:
+1. [Project Overview](#project-overview)
+2. [Usage](#usage)
+3. [App Features](#app-features)
+4. [References](#references)
+5. [Visual Examples](#visual-examples)
+
 ## Usage:
 To launch via Streamlit cloud:
 (Insert Link)
